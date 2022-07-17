@@ -43,7 +43,7 @@ export const convertClasses2StorageObjects = (
     }
 
     const storageObjects: StorageObject[] = []
-    const storages = parseStorage(umlClass, umlClasses, [], storageObjects)
+    const storages = parseStorage(umlClass, umlClasses, [], storageObjects, [])
 
     storageObjects.unshift({
         id: storageObjectId++,
@@ -66,12 +66,23 @@ const parseStorage = (
     umlClass: UmlClass,
     umlClasses: UmlClass[],
     storages: Storage[],
-    storageObjects: StorageObject[]
+    storageObjects: StorageObject[],
+    inheritedContracts: string[]
 ) => {
     // Add storage slots from inherited contracts first.
     // Get immediate parent contracts that the class inherits from
     const parentContracts = umlClass.getParentContracts()
-    parentContracts.forEach((parent) => {
+    // Filter out any already inherited contracts
+    const newInheritedContracts = parentContracts.filter(
+        (parentContract) =>
+            !inheritedContracts.includes(parentContract.targetUmlClassName)
+    )
+    // Mutate inheritedContracts to include the new inherited contracts
+    inheritedContracts.push(
+        ...newInheritedContracts.map((c) => c.targetUmlClassName)
+    )
+    // Recursively parse each new inherited contract
+    newInheritedContracts.forEach((parent) => {
         const parentClass = umlClasses.find(
             (umlClass) => umlClass.name === parent.targetUmlClassName
         )
@@ -80,10 +91,16 @@ const parseStorage = (
                 `Failed to find parent contract ${parent.targetUmlClassName} of ${umlClass.name}`
             )
         // recursively parse inherited contract
-        parseStorage(parentClass, umlClasses, storages, storageObjects)
+        parseStorage(
+            parentClass,
+            umlClasses,
+            storages,
+            storageObjects,
+            inheritedContracts
+        )
     })
 
-    // parse storage for each attribute
+    // Parse storage for each attribute
     umlClass.attributes.forEach((attribute) => {
         // Ignore any attributes that are constants or immutable
         if (attribute.compiled) return
@@ -165,7 +182,8 @@ export const parseStructStorageObject = (
                 dependentClass,
                 otherClasses,
                 [],
-                storageObjects
+                storageObjects,
+                []
             )
             const newStorageObject = {
                 id: storageObjectId++,
@@ -215,7 +233,8 @@ export const parseStructStorageObject = (
                     typeClass,
                     otherClasses,
                     [],
-                    storageObjects
+                    storageObjects,
+                    []
                 )
                 const newStorageObject = {
                     id: storageObjectId++,

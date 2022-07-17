@@ -154,7 +154,7 @@ If an Ethereum address with a 0x prefix is passed, the verified source code from
 
             debug(`Finished generating UML`)
         } catch (err) {
-            console.error(`Failed to generate UML diagram ${err.message}`)
+            console.error(`Failed to generate UML diagram ${err}`)
         }
     })
 
@@ -206,7 +206,7 @@ program
                 combinedOptions.outputFileName
             )
         } catch (err) {
-            console.error(`Failed to generate storage diagram ${err.message}`)
+            console.error(`Failed to generate storage diagram ${err}`)
         }
     })
 
