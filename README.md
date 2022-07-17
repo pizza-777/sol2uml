@@ -208,6 +208,12 @@ Heads/Tails:
 - An open arrow head for storage or memory variable dependencies
 - A diamond tail for aggregations of contract level structs and enums
 
+## Storage diagram
+
+![FileLevel-storage](./examples/storage/FileLevel-storage.png)
+
+See [storage examples](./examples/storage/README.md) for more diagrams.
+
 # Version 2.x changes
 
 The biggest change with 2.x is the introduction of subcommands as sol2uml can now draw contract storage diagrams.

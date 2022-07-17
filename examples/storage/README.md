@@ -4,14 +4,19 @@
 
 Any struct used in storage is shown displaying their slot configurations. These structs can be a type of a storage variable or using in a mapping or array.
 
-![Staking Tokens](./StakedTokenMTA.png)
+![Staking Tokens BPT](./StakedTokenBPT.png)
 
-The above was generated against a local copy of the [mStable contracts](https://github.com/mstable/mStable-contracts/pull/220) repository.
-The `-c StakedTokenMTA` option is used to specify the base contract the storage should be generated for.
-The `-i build,_flat` option ignores the Solidity files in the `build` and `_flat` subfolders.
+Generated from running
+```
+sol2uml storage 0xc63a48d85CCE7C3bD4d18db9c0972a4D223e4193 -f png -o examples/storage/StakedTokenBPT.png
+```
+
+![Test Storage](./TestStorage.png)
+
+The above is an example from this repository [TestStorage.sol](../../src/contracts/TestStorage.sol).
 
 ```
-sol2uml storage -v -c StakedTokenMTA -i build,_flat -f png -o examples/storage/StakedTokenMTA.png ../mStable-contracts
+sol2uml storage -v -c TestStorage -i build,_flat -f png -o examples/storage/TestStorage.png ./src/contracts
 ```
 
 ## USDC
