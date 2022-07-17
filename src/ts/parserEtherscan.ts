@@ -1,7 +1,6 @@
 import axios from 'axios'
 import { ASTNode } from '@solidity-parser/parser/dist/src/ast-types'
 import { parse } from '@solidity-parser/parser'
-import { VError } from 'verror'
 
 import { convertAST2UmlClasses } from './converterAST2Classes'
 import { UmlClass } from './umlClass'
@@ -104,9 +103,9 @@ export class EtherscanParser {
 
             return node
         } catch (err) {
-            throw new VError(
-                err,
-                `Failed to parse solidity code from source code:\n${sourceCode}`
+            throw new Error(
+                `Failed to parse solidity code from source code:\n${sourceCode}`,
+                { cause: err }
             )
         }
     }
@@ -169,8 +168,9 @@ export class EtherscanParser {
                             })
                         )
                     } catch (err) {
-                        throw new VError(
-                            `Failed to parse Solidity source code from Etherscan's SourceCode. ${result.SourceCode}`
+                        throw new Error(
+                            `Failed to parse Solidity source code from Etherscan's SourceCode. ${result.SourceCode}`,
+                            { cause: err }
                         )
                     }
                 }
@@ -201,8 +201,9 @@ export class EtherscanParser {
             if (!err.response) {
                 throw new Error(`Failed to ${description}. No HTTP response.`)
             }
-            throw new VError(
-                `Failed to ${description}. HTTP status code ${err.response?.status}, status text: ${err.response?.statusText}`
+            throw new Error(
+                `Failed to ${description}. HTTP status code ${err.response?.status}, status text: ${err.response?.statusText}`,
+                { cause: err }
             )
         }
     }

@@ -3,7 +3,6 @@ import { basename, extname, relative } from 'path'
 import klaw from 'klaw'
 import { ASTNode } from '@solidity-parser/parser/dist/src/ast-types'
 import { parse } from '@solidity-parser/parser'
-import { VError } from 'verror'
 
 import { convertAST2UmlClasses } from './converterAST2Classes'
 import { UmlClass } from './umlClass'
@@ -110,9 +109,9 @@ export function getSolidityFilesFromFolderOrFile(
                     `No such file or folder ${folderOrFilePath}. Make sure you pass in the root directory of the contracts`
                 )
             } else {
-                error = new VError(
-                    err,
-                    `Failed to get Solidity files under folder or file ${folderOrFilePath}`
+                error = new Error(
+                    `Failed to get Solidity files under folder or file ${folderOrFilePath}`,
+                    { cause: err }
                 )
             }
 
@@ -127,14 +126,15 @@ export function parseSolidityFile(fileName: string): ASTNode {
     try {
         solidityCode = readFileSync(fileName, 'utf8')
     } catch (err) {
-        throw new VError(err, `Failed to read solidity file ${fileName}.`)
+        throw new Error(`Failed to read solidity file ${fileName}.`, {
+            cause: err,
+        })
     }
     try {
         return parse(solidityCode, {})
     } catch (err) {
-        throw new VError(
-            err,
-            `Failed to parse solidity code in file ${fileName}.`
-        )
+        throw new Error(`Failed to parse solidity code in file ${fileName}.`, {
+            cause: err,
+        })
     }
 }

@@ -1,6 +1,5 @@
 import { lstatSync, writeFile } from 'fs'
 import path from 'path'
-import { VError } from 'verror'
 const Viz = require('viz.js')
 const svg_to_png = require('svg-to-png')
 
@@ -57,7 +56,7 @@ export function convertDot2Svg(dot: string): any {
     } catch (err) {
         console.error(`Failed to convert dot to SVG. ${err.message}`)
         console.log(dot)
-        throw new VError(err, `Failed to parse dot string`)
+        throw new Error(`Failed to parse dot string`, { cause: err })
     }
 }
 
@@ -68,10 +67,9 @@ export function writeSolidity(code: string, filename = 'solidity') {
 
     writeFile(outputFile, code, (err) => {
         if (err) {
-            throw new VError(
-                err,
-                `Failed to write Solidity to file ${outputFile}`
-            )
+            throw new Error(`Failed to write Solidity to file ${outputFile}`, {
+                cause: err,
+            })
         } else {
             console.log(`Solidity written to ${outputFile}`)
         }
@@ -85,7 +83,9 @@ export function writeDot(dot: string, filename = 'classDiagram.dot') {
 
     writeFile(outputFile, dot, (err) => {
         if (err) {
-            throw new VError(err, `Failed to write Dot file to ${outputFile}`)
+            throw new Error(`Failed to write Dot file to ${outputFile}`, {
+                cause: err,
+            })
         } else {
             console.log(`Dot file written to ${outputFile}`)
         }
@@ -112,10 +112,9 @@ export function writeSVG(
         writeFile(svgFilename, svg, (err) => {
             if (err) {
                 reject(
-                    new VError(
-                        err,
-                        `Failed to write SVG file to ${svgFilename}`
-                    )
+                    new Error(`Failed to write SVG file to ${svgFilename}`, {
+                        cause: err,
+                    })
                 )
             } else {
                 console.log(`Generated svg file ${svgFilename}`)
@@ -138,9 +137,9 @@ export async function writePng(svg: any, filename: string): Promise<void> {
     try {
         await svg_to_png.convert(path.resolve(svgFilename), pngDir)
     } catch (err) {
-        throw new VError(
-            err,
-            `Failed to convert SVG file ${svgFilename} to PNG file ${pngFilename}`
+        throw new Error(
+            `Failed to convert SVG file ${svgFilename} to PNG file ${pngFilename}`,
+            { cause: err }
         )
     }
 
