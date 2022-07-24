@@ -19,14 +19,14 @@
   "repository": "github:naddison36/sol2uml",
   "license": "MIT",
   "dependencies": {
+    "@aduh95/viz.js": "^3.7.0",
     "@solidity-parser/parser": "^0.14.3",
     "axios": "^0.27.2",
     "commander": "^9.4.0",
     "convert-svg-to-png": "^0.6.4",
     "debug": "^4.3.4",
     "js-graph-algorithms": "^1.0.18",
-    "klaw": "^4.0.1",
-    "viz.js": "^1.8.2"
+    "klaw": "^4.0.1"
   },
   "devDependencies": {
     "@types/jest": "^28.1.6",

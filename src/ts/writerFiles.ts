@@ -1,6 +1,6 @@
 import { lstatSync, writeFile } from 'fs'
 import path from 'path'
-const Viz = require('viz.js')
+import vizRenderStringSync from '@aduh95/viz.js/sync'
 const { convert } = require('convert-svg-to-png')
 
 const debug = require('debug')('sol2uml')
@@ -53,7 +53,7 @@ export function convertDot2Svg(dot: string): any {
     debug(`About to convert dot to SVG`)
 
     try {
-        return Viz(dot)
+        return vizRenderStringSync(dot)
     } catch (err) {
         console.error(`Failed to convert dot to SVG. ${err.message}`)
         console.log(dot)
