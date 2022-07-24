@@ -98,15 +98,19 @@ contract TestStorage is Parent, Parent2 {
         Resolved
     }
 
+    uint256 public constant N_COINS = 3;
     uint256 public constant SCALE = 1e18;
     uint256 internal constant DIVISOR = 1e18;
     address public immutable superUser;
     address internal immutable superUser2;
+    uint256 public immutable MAX_COINS;
 
     address owner;
     IERC20 token;
     IERC20[] tokens;
     IERC20[2] tokenPair;
+    address[N_COINS] coins;
+    address[MAX_COINS] coins;
     uint256 totalSupply = 123123123123456789012345678;
     uint128 rate1 = 123 * 1e18;
     uint128 rate2 = 456 * 1e18;
@@ -154,8 +158,9 @@ contract TestStorage is Parent, Parent2 {
     mapping (address => ContractLevelStruct2) mapStruct;
     mapping (address => mapping (address => ContractLevelStruct2)) mapOfMapStruct;
 
-    constructor(address _superUser) {
+    constructor(address _superUser, uint256 maxCoins) {
         superUser = _superUser;
         superUser2 = _superUser;
+        MAX_COINS = maxCoins;
     }
 }

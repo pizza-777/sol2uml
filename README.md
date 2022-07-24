@@ -102,7 +102,9 @@ Options:
 ```
 Usage: sol2uml storage [options] <fileFolderAddress>
 
-output a contracts storage slots
+Visually display a contract's storage slots.
+
+WARNING: sol2uml does not use the Solidity compiler so may differ with solc. A known example is storage arrays declared with a constant, immutable or expression will show as only taking one slot but it could be more. Storage arrays declared with an integer work.
 
 Arguments:
   fileFolderAddress           file name, base folder or contract address
