@@ -139,6 +139,16 @@ struct FileLevelStruct {
     StructOfStruct structOfStruct;
 }
 
+struct FunctionParamStruct {
+    address foo;
+    address bar;
+}
+
+struct FunctionParamArrayStruct {
+    uint256 foo;
+    uint256 bar;
+}
+
 enum FileLevelStorageEnum {
     Green,
     Orange,
@@ -264,5 +274,11 @@ contract Associations is ContractInterface, ContractAbstract, ContractConcrete {
 
     function usingEnum(FileLevelMemoryEnum status) public {
 
+    }
+
+    function usingStruct(FunctionParamStruct memory param) public {
+    }
+
+    function usingStructArray(FunctionParamArrayStruct[] memory params) public {
     }
 }

@@ -387,6 +387,18 @@ function addAssociations(
                         ],
                         umlClass
                     )
+                    // Array of user defined types
+                } else if (
+                    node.typeName.type == 'ArrayTypeName' &&
+                    node.typeName.baseTypeName.type === 'UserDefinedTypeName'
+                ) {
+                    const { umlClassName } = parseClassName(
+                        node.typeName.baseTypeName.namePath
+                    )
+                    umlClass.addAssociation({
+                        referenceType,
+                        targetUmlClassName: umlClassName,
+                    })
                 }
                 break
             case 'UserDefinedTypeName':
