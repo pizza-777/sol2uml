@@ -17,6 +17,7 @@ import * as path from 'path'
 import {
     AttributeType,
     ClassStereotype,
+    Import,
     OperatorStereotype,
     Parameter,
     ReferenceType,
@@ -42,7 +43,7 @@ export function convertAST2UmlClasses(
     relativePath: string,
     filesystem: boolean = false
 ): UmlClass[] {
-    const importedPaths: string[] = []
+    const imports: Import[] = []
     umlClasses = []
 
     if (node.type === 'SourceUnit') {
@@ -99,7 +100,17 @@ export function convertAST2UmlClasses(
                         const importPath = require.resolve(childNode.path, {
                             paths: [codeFolder],
                         })
-                        importedPaths.push(importPath)
+                        imports.push({
+                            absolutePath: importPath,
+                            classNames: childNode.symbolAliases
+                                ? childNode.symbolAliases.map((alias) => {
+                                      return {
+                                          className: alias[0],
+                                          alias: alias[1],
+                                      }
+                                  })
+                                : [],
+                        })
                     } catch (err) {
                         debug(
                             `Failed to resolve import ${childNode.path} from file ${relativePath}`
@@ -108,7 +119,17 @@ export function convertAST2UmlClasses(
                 } else {
                     // this has come from Etherscan
                     const importPath = path.join(codeFolder, childNode.path)
-                    importedPaths.push(importPath)
+                    imports.push({
+                        absolutePath: importPath,
+                        classNames: childNode.symbolAliases
+                            ? childNode.symbolAliases.map((alias) => {
+                                  return {
+                                      className: alias[0],
+                                      alias: alias[1],
+                                  }
+                              })
+                            : [],
+                    })
                 }
             }
         })
@@ -117,7 +138,7 @@ export function convertAST2UmlClasses(
     }
 
     umlClasses.forEach((umlClass) => {
-        umlClass.importedPaths = importedPaths
+        umlClass.imports = imports
     })
 
     return umlClasses

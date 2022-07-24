@@ -6,6 +6,7 @@ import {
     ReferenceType,
     UmlClass,
 } from './umlClass'
+import { findAssociatedClass } from './associations'
 
 const debug = require('debug')('sol2uml')
 
@@ -102,19 +103,11 @@ export function addAssociationsToDot(
 
         // for each association in that class
         for (const association of Object.values(sourceUmlClass.associations)) {
-            // find the target class with the same class name and
-            // codePath of the target in the importedPaths of the source class OR
-            // the codePath of the target is the same as the codePath pf the source class
-            const targetUmlClass = umlClasses.find((targetUmlClass) => {
-                return (
-                    targetUmlClass.name === association.targetUmlClassName &&
-                    (sourceUmlClass.importedPaths.includes(
-                        targetUmlClass.absolutePath
-                    ) ||
-                        sourceUmlClass.absolutePath ===
-                            targetUmlClass.absolutePath)
-                )
-            })
+            const targetUmlClass = findAssociatedClass(
+                association,
+                sourceUmlClass,
+                umlClasses
+            )
             if (targetUmlClass) {
                 dotString += addAssociationToDot(
                     sourceUmlClass,

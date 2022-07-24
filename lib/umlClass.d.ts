@@ -29,6 +29,13 @@ export declare enum AttributeType {
     Array = 3,
     Mapping = 4
 }
+export interface Import {
+    absolutePath: string;
+    classNames: {
+        className: string;
+        alias?: string;
+    }[];
+}
 export interface Attribute {
     visibility?: Visibility;
     name: string;
@@ -76,7 +83,7 @@ export declare class UmlClass implements ClassProperties {
     name: string;
     absolutePath: string;
     relativePath: string;
-    importedPaths?: string[];
+    imports?: Import[];
     stereotype?: ClassStereotype;
     attributes: Attribute[];
     operators: Operator[];

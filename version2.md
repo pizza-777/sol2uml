@@ -25,6 +25,6 @@
 
 # Fixes
 
-* Improved linkages of classes when there are duplicate contract names.
+* Improved linkages of classes when there are duplicate contract names, explicit imports and import aliases.
 * If a contract or library contains a struct, it is marked as an aggregate association. A separate dependency line is used to link a contract to a struct. This can be a storage (solid line) or memory (dashed line) dependency.
 * Structs in libraries are now linked to their dependent contract.

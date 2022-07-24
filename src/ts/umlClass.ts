@@ -33,6 +33,14 @@ export enum AttributeType {
     Mapping,
 }
 
+export interface Import {
+    absolutePath: string
+    classNames: {
+        className: string
+        alias?: string
+    }[]
+}
+
 export interface Attribute {
     visibility?: Visibility
     name: string
@@ -87,7 +95,7 @@ export class UmlClass implements ClassProperties {
     name: string
     absolutePath: string
     relativePath: string
-    importedPaths?: string[]
+    imports?: Import[]
     stereotype?: ClassStereotype
 
     attributes: Attribute[] = []

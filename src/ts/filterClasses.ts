@@ -1,5 +1,6 @@
 import { Dijkstra, Edge, WeightedDiGraph } from 'js-graph-algorithms'
 import { UmlClass } from './umlClass'
+import { findAssociatedClass } from './associations'
 
 export const classesConnectedToBaseContracts = (
     umlClasses: UmlClass[],
@@ -61,16 +62,11 @@ function loadGraph(umlClasses: UmlClass[]): WeightedDiGraph {
     for (const sourceUmlClass of umlClasses) {
         for (const association of Object.values(sourceUmlClass.associations)) {
             // Find the first UML Class that matches the target class name
-            const targetUmlClass = umlClasses.find((targetUmlClass) => {
-                return (
-                    targetUmlClass.name === association.targetUmlClassName &&
-                    (sourceUmlClass.importedPaths.includes(
-                        targetUmlClass.absolutePath
-                    ) ||
-                        sourceUmlClass.absolutePath ===
-                            targetUmlClass.absolutePath)
-                )
-            })
+            const targetUmlClass = findAssociatedClass(
+                association,
+                sourceUmlClass,
+                umlClasses
+            )
 
             if (!targetUmlClass) {
                 continue
