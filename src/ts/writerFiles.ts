@@ -1,7 +1,7 @@
 import { lstatSync, writeFile } from 'fs'
 import path from 'path'
 const Viz = require('viz.js')
-const svg_to_png = require('svg-to-png')
+const { convert } = require('convert-svg-to-png')
 
 const debug = require('debug')('sol2uml')
 
@@ -40,8 +40,9 @@ export const writeOutputFiles = async (
 
     const svg = convertDot2Svg(dot)
 
-    // write svg file even if only wanting png file as we generateFilesFromUmlClasses svg files to png
-    await writeSVG(svg, outputFilename, outputFormat)
+    if (outputFormat === 'svg' || outputFormat === 'all') {
+        await writeSVG(svg, outputFilename, outputFormat)
+    }
 
     if (outputFormat === 'png' || outputFormat === 'all') {
         await writePng(svg, outputFilename)
@@ -129,18 +130,36 @@ export async function writePng(svg: any, filename: string): Promise<void> {
     const parsedPngFile = path.parse(filename)
     const pngDir =
         parsedPngFile.dir === '' ? '.' : path.resolve(parsedPngFile.dir)
-    const svgFilename = pngDir + '/' + parsedPngFile.name + '.svg'
     const pngFilename = pngDir + '/' + parsedPngFile.name + '.png'
 
-    debug(`About to convert svg file ${svgFilename} to png file ${pngFilename}`)
+    debug(`About to write png file ${pngFilename}`)
 
     try {
-        await svg_to_png.convert(path.resolve(svgFilename), pngDir)
+        const png = await convert(svg, {
+            outputFilePath: pngFilename,
+        })
+
+        return new Promise<void>((resolve, reject) => {
+            writeFile(pngFilename, png, (err) => {
+                if (err) {
+                    reject(
+                        new Error(
+                            `Failed to write PNG file to ${pngFilename}`,
+                            {
+                                cause: err,
+                            }
+                        )
+                    )
+                } else {
+                    console.log(`Generated png file ${pngFilename}`)
+                    resolve()
+                }
+            })
+        })
     } catch (err) {
-        throw new Error(
-            `Failed to convert SVG file ${svgFilename} to PNG file ${pngFilename}`,
-            { cause: err }
-        )
+        throw new Error(`Failed to convert PNG file ${pngFilename}`, {
+            cause: err,
+        })
     }
 
     console.log(`Generated png file ${pngFilename}`)
