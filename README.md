@@ -7,7 +7,12 @@
 Open Zeppelin's ERC20 token contracts generated from [version 2.5.1](https://github.com/OpenZeppelin/openzeppelin-solidity/tree/v2.5.1/contracts/token/ERC20)
 ![Open Zeppelin ERC20](./examples/OpenZeppelinERC20.svg)
 
-See [examples](./examples/README.md) for more diagrams.
+See more contract diagrams [here](./examples/README.md).
+
+USDC storage slots from the [verified source code](https://etherscan.io/address/0xa2327a938febf5fec13bacfb16ae10ecbc4cbdcf#code) on Etherscan.
+![USDC](./examples/storage/usdc.png)
+
+See more storage slot diagrams [here](./examples/storage/README.md).
 
 # Install
 
@@ -214,7 +219,7 @@ Heads/Tails:
 
 ![FileLevel-storage](./examples/storage/FileLevel-storage.png)
 
-See [storage examples](./examples/storage/README.md) for more diagrams.
+See more storage slot diagrams [here](./examples/storage/README.md).
 
 # Version 2.x changes
 
