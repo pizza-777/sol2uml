@@ -110,7 +110,10 @@ contract TestStorage is Parent, Parent2 {
     IERC20[] tokens;
     IERC20[2] tokenPair;
     address[N_COINS] coins;
-    address[MAX_COINS] coins;
+    uint256[MAX_COINS] maxCoins;
+    IERC20[N_COINS] tokens;
+    address[2 * N_COINS] doubleTokens;
+
     uint256 totalSupply = 123123123123456789012345678;
     uint128 rate1 = 123 * 1e18;
     uint128 rate2 = 456 * 1e18;
@@ -163,4 +166,5 @@ contract TestStorage is Parent, Parent2 {
         superUser2 = _superUser;
         MAX_COINS = maxCoins;
     }
+
 }

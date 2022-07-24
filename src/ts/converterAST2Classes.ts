@@ -5,7 +5,7 @@ import {
     EnumDefinition,
     EnumValue,
     Expression,
-    NumberLiteral,
+    StateVariableDeclarationVariable,
     StructDefinition,
     TypeName,
     UserDefinedTypeName,
@@ -200,20 +200,23 @@ function parseContractDefinition(
     // For each sub node
     node.subNodes.forEach((subNode) => {
         if (isStateVariableDeclaration(subNode)) {
-            subNode.variables.forEach((variable: VariableDeclaration) => {
-                const [type, attributeType] = parseTypeName(variable.typeName)
-                const valueStore =
-                    // @ts-ignore isImmutable is available at runtime but not in VariableDeclaration
-                    variable.isDeclaredConst || variable.isImmutable
+            subNode.variables.forEach(
+                (variable: StateVariableDeclarationVariable) => {
+                    const [type, attributeType] = parseTypeName(
+                        variable.typeName
+                    )
+                    const valueStore =
+                        variable.isDeclaredConst || variable.isImmutable
 
-                umlClass.attributes.push({
-                    visibility: parseVisibility(variable.visibility),
-                    name: variable.name,
-                    type,
-                    attributeType,
-                    compiled: valueStore,
-                })
-            })
+                    umlClass.attributes.push({
+                        visibility: parseVisibility(variable.visibility),
+                        name: variable.name,
+                        type,
+                        attributeType,
+                        compiled: valueStore,
+                    })
+                }
+            )
 
             // Recursively parse variables for associations
             umlClass = addAssociations(subNode.variables, umlClass)
@@ -589,10 +592,15 @@ function parseTypeName(typeName: TypeName): [string, AttributeType] {
             return [typeName.type + '\\(\\)', AttributeType.Function]
         case 'ArrayTypeName':
             const [arrayElementType] = parseTypeName(typeName.baseTypeName)
-            // Bug in Solidity parser's ArrayTypeName
-            // ArrayTypeName.length is `Expression | null`
-            // but should be `NumberLiteral | null`
-            const length = (typeName.length as NumberLiteral)?.number || ''
+            let length: string = ''
+            if (Number.isInteger(typeName.length)) {
+                length = typeName.length.toString()
+            } else if (typeName.length?.type === 'NumberLiteral') {
+                length = typeName.length.number
+            } else if (typeName.length?.type === 'Identifier') {
+                length = typeName.length.name
+            }
+            // TODO does not currently handle Expression types like BinaryOperation
             return [arrayElementType + '[' + length + ']', AttributeType.Array]
         case 'Mapping':
             const key =
