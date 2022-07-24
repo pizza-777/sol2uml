@@ -1,4 +1,4 @@
-pragma solidity ^0.5.10;
+pragma solidity ^0.8.6;
 
 import "./libraries/BigInt.sol";
 import "./libraries/Set.sol";
@@ -130,6 +130,37 @@ library VariableDeclarationLibrary {
     }
 }
 
+struct StructOfStruct {
+    address owner;
+    bool flag;
+}
+
+struct FileLevelStruct {
+    StructOfStruct structOfStruct;
+}
+
+struct FunctionParamStruct {
+    address foo;
+    address bar;
+}
+
+struct FunctionParamArrayStruct {
+    uint256 foo;
+    uint256 bar;
+}
+
+enum FileLevelStorageEnum {
+    Green,
+    Orange,
+    Red
+}
+
+enum FileLevelMemoryEnum {
+    Sent,
+    Mined,
+    Failed
+}
+
 contract Associations is ContractInterface, ContractAbstract, ContractConcrete {
 
     uint256 public someInt;
@@ -137,6 +168,12 @@ contract Associations is ContractInterface, ContractAbstract, ContractConcrete {
     Set.Data someLibrary;
     SomeStruct someStruct;
     uint256[] someIntArray;
+
+    FileLevelStorageEnum fileLevelEnum;
+    FileLevelStruct fileLevelStruct;
+
+    SomeEnum someEnum;
+    FileLevelStorageEnum fileLevelStorageEnum;
 
     mapping(address => MappingConcrete) public mappingConcreateReference;
     mapping(address => MappingInterface) public mappingInterfaceReference;
@@ -159,6 +196,14 @@ contract Associations is ContractInterface, ContractAbstract, ContractConcrete {
 
     struct StructInStruct {
         bool active;
+    }
+
+    enum SomeEnum {
+        Pending,
+        Approve,
+        Reject,
+        Cancel,
+        Processed
     }
 
     constructor (
@@ -225,5 +270,15 @@ contract Associations is ContractInterface, ContractAbstract, ContractConcrete {
         SomeStruct[] memory someStructArray
     ) internal returns (SomeStruct[] memory) {
         return someStructArray;
+    }
+
+    function usingEnum(FileLevelMemoryEnum status) public {
+
+    }
+
+    function usingStruct(FunctionParamStruct memory param) public {
+    }
+
+    function usingStructArray(FunctionParamArrayStruct[] memory params) public {
     }
 }

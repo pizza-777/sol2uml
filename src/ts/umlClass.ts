@@ -25,16 +25,35 @@ export enum OperatorStereotype {
     Abstract,
 }
 
-export interface Parameter {
-    // name is not required in return parameters or operator parameters
-    name?: string
-    type: string
+export enum AttributeType {
+    Elementary,
+    UserDefined,
+    Function,
+    Array,
+    Mapping,
+}
+
+export interface Import {
+    absolutePath: string
+    classNames: {
+        className: string
+        alias?: string
+    }[]
 }
 
 export interface Attribute {
     visibility?: Visibility
     name: string
+    // Enums do not have types
     type?: string
+    attributeType?: AttributeType
+    compiled?: boolean // true for constants and immutables
+}
+
+export interface Parameter {
+    // name is not required in return parameters or operator parameters
+    name?: string
+    type: string
 }
 
 export interface Operator extends Attribute {
@@ -62,7 +81,8 @@ export interface ClassProperties {
     relativePath: string
     importedFileNames?: string[]
     stereotype?: ClassStereotype
-    enums?: { [name: string]: string[] }
+    enums?: number[]
+    structs?: number[]
     attributes?: Attribute[]
     operators?: Operator[]
     associations?: { [name: string]: Association }
@@ -75,14 +95,14 @@ export class UmlClass implements ClassProperties {
     name: string
     absolutePath: string
     relativePath: string
-    importedPaths?: string[]
+    imports?: Import[]
     stereotype?: ClassStereotype
 
     attributes: Attribute[] = []
     operators: Operator[] = []
 
-    enums: { [name: string]: string[] } = {}
-    structs: { [name: string]: Parameter[] } = {}
+    enums: number[] = []
+    structs: number[] = []
     associations: { [name: string]: Association } = {}
 
     constructor(properties: ClassProperties) {
@@ -121,5 +141,18 @@ export class UmlClass implements ClassProperties {
                     ReferenceType.Storage
             }
         }
+    }
+
+    /**
+     * Gets the immediate parent contracts this class inherits from.
+     * Does not include any grand parent associations. That has to be done recursively.
+     */
+    getParentContracts(): Association[] {
+        return Object.values(this.associations).filter(
+            (association) =>
+                association.realization &&
+                association.targetUmlClassStereotype !==
+                    ClassStereotype.Interface
+        )
     }
 }

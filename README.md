@@ -7,12 +7,17 @@
 Open Zeppelin's ERC20 token contracts generated from [version 2.5.1](https://github.com/OpenZeppelin/openzeppelin-solidity/tree/v2.5.1/contracts/token/ERC20)
 ![Open Zeppelin ERC20](./examples/OpenZeppelinERC20.svg)
 
-See [examples](./examples/README.md) for more diagrams.
+See more contract diagrams [here](./examples/README.md).
+
+USDC storage slots from the [verified source code](https://etherscan.io/address/0xa2327a938febf5fec13bacfb16ae10ecbc4cbdcf#code) on Etherscan.
+![USDC](./examples/storage/usdc.png)
+
+See more storage slot diagrams [here](./examples/storage/README.md).
 
 # Install
 
 The following installation assumes [Node.js](https://nodejs.org/en/download/) has already been installed which comes with [Node Package Manager (NPM)](https://www.npmjs.com/).
-`sol2uml` works with node 12 or above. [Node 10 is end-of-life 2021-04-30](https://nodejs.org/en/about/releases/) so time to upgrade if you are still running node 10.
+`sol2uml` works with node 14 or above.
 
 To install globally so you can run `sol2uml` from anywhere
 ```bash
@@ -33,12 +38,41 @@ npm ls sol2uml -g
 
 ## Command Line Interface (CLI)
 
-To see the usage options
 ```
-$ sol2uml -h
-Usage: sol2uml <fileFolderAddress> [options]
+$ sol2uml --help
+Usage: sol2uml [subcommand] <options>
+The three subcommands:
+* class:    Generates a UML class diagram from Solidity source code. default
+* storage:  Generates a diagram of a contract's storage slots.
+* flatten:  Pulls verified source files from a Blockchain explorer into one, flat, local Solidity file.
+
+The Solidity code can be pulled from verified source code on Blockchain explorers like Etherscan or from local Solidity files.
+
+Options:
+  -sf, --subfolders <value>                    number of subfolders that will be recursively searched for Solidity files. (default: all)
+  -f, --outputFormat <value>                   output file format. (choices: "svg", "png", "dot", "all", default: "svg")
+  -o, --outputFileName <value>                 output file name
+  -i, --ignoreFilesOrFolders <filesOrFolders>  comma separated list of files or folders to ignore
+  -n, --network <network>                      Ethereum network (choices: "mainnet", "polygon", "bsc", "arbitrum", "ropsten", "kovan", "rinkeby", "goerli", default: "mainnet")
+  -k, --apiKey <key>                           Etherscan, Polygonscan or BscScan API key
+  -v, --verbose                                run with debugging statements (default: false)
+  -h, --help                                   display help for command
+
+Commands:
+  class [options] [fileFolderAddress]          Generates a UML class diagram from Solidity source code.
+  storage [options] <fileFolderAddress>        output a contracts storage slots
+  flatten <contractAddress>                    get all verified source code for a contract from the Blockchain explorer into one local file
+  help [command]                               display help for command
+```
+
+### Class usage
+
+```
+$sol2uml class --help
+Usage: sol2uml class <fileFolderAddress> [options]
 
 Generates UML diagrams from Solidity source code.
+
 If no file, folder or address is passes as the first argument, the working folder is used.
 When a folder is used, all *.sol files are found in that folder and all sub folders.
 A comma separated list of files and folders can also used. For example
@@ -47,84 +81,99 @@ A comma separated list of files and folders can also used. For example
 If an Ethereum address with a 0x prefix is passed, the verified source code from Etherscan will be used. For example
     sol2uml 0x79fEbF6B9F76853EDBcBc913e6aAE8232cFB9De9
 
+Generates a UML class diagram from Solidity source code.
+
+Arguments:
+  fileFolderAddress                file name, base folder or contract address (default: "/Users/nicholasaddison/Documents/workspaces/sol2uml")
+
 Options:
-  -b, --baseContractNames <value>              only output contracts connected to these comma separated base contract names
-  -f, --outputFormat <value>                   output file format: svg, png, sol, dot or all (default: "svg")
-  -o, --outputFileName <value>                 output file name
-  -d, --depthLimit <depth>                     number of sub folders that will be recursively searched for Solidity files. Default -1 is unlimited (default: -1)
-  -i, --ignoreFilesOrFolders <filesOrFolders>  comma separated list of files or folders to ignore
-  -n, --network <network>                      mainnet, polygon, bsc, ropsten, kovan, rinkeby or goerli (default: "mainnet")
-  -a, --hideAttributes                         hide class and interface attributes
-  -p, --hideOperators                          hide class and interface operators/functions
-  -e, --hideEnums                              hide enum types
-  -s, --hideStructs                            hide data structures
-  -l, --hideLibraries                          hide libraries
-  -t, --hideInterfaces                         hide interfaces
-  -r, --hideInternals                          hide private and internal attributes and operators
-  -k, --etherscanApiKey <key>                  Etherscan API Key
-  -c, --clusterFolders                         cluster contracts into source folders
-  -v, --verbose                                run with debugging statements
-  -h, --help                                   output usage information
+  -b, --baseContractNames <value>  only output contracts connected to these comma separated base contract names
+  -d, --depth <value>              depth of connected classes to the base contracts. 1 will only show directly connected contracts, interfaces, libraries, structs and enums. (default: all)
+  -c, --clusterFolders             cluster contracts into source folders (default: false)
+  -hv, --hideVariables             hide variables from contracts, interfaces, structs and enums (default: false)
+  -hf, --hideFunctions             hide functions from contracts, interfaces and libraries (default: false)
+  -hp, --hidePrivates              hide private and internal attributes and operators (default: false)
+  -he, --hideEnums                 hide enum types (default: false)
+  -hs, --hideStructs               hide data structures (default: false)
+  -hl, --hideLibraries             hide libraries (default: false)
+  -hi, --hideInterfaces            hide interfaces (default: false)
+  -ha, --hideAbstracts             hide abstract contracts (default: false)
+  -hn, --hideFilename              hide relative path and file name (default: false)
+  -h, --help                       display help for command
 ```
+
+### Storage usage
+
+```
+Usage: sol2uml storage [options] <fileFolderAddress>
+
+Visually display a contract's storage slots.
+
+WARNING: sol2uml does not use the Solidity compiler so may differ with solc. A known example is storage arrays declared with a constant, immutable or expression will show as only taking one slot but it could be more. Storage arrays declared with an integer work.
+
+Arguments:
+  fileFolderAddress           file name, base folder or contract address
+
+Options:
+  -c, --contractName <value>  Contract name in local Solidity files. Not needed when using an address as the first argument.
+  -h, --help                  display help for command
+
+```
+
+### Flatten usage
+
+```
+$sol2uml flatten --help
+Usage: sol2uml flatten [options] <contractAddress>
+
+get all verified source code for a contract from the Blockchain explorer into one local file
+
+Arguments:
+  contractAddress  Contract address
+
+Options:
+  -h, --help       display help for command
+
+```
+
+## UML Class diagram examples
 
 To generate a diagram of all contracts under the contracts folder and its sub folders
 ```bash
-sol2uml ./contracts
+sol2uml class ./contracts
 ```
 
 To generate a diagram of EtherDelta's contract from the verified source code on [Etherscan](https://etherscan.io/address/0x8d12A197cB00D4747a1fe03395095ce2A5CC6819#code). The output wil be a svg file `0x8d12A197cB00D4747a1fe03395095ce2A5CC6819.svg` in the working folder.
 ```bash
-sol2uml 0x8d12A197cB00D4747a1fe03395095ce2A5CC6819
+sol2uml class 0x8d12A197cB00D4747a1fe03395095ce2A5CC6819
 ```
 
 To generate a diagram of EtherDelta's contract from the verified source code on [Etherscan Ropsten](https://ropsten.etherscan.io/address/0xa19833bd291b66aB0E17b9C6d46D2Ec5fEC15190#code). The output wil be a svg file `0xa19833bd291b66aB0E17b9C6d46D2Ec5fEC15190.svg` in the working folder.
 ```bash
-sol2uml 0xa19833bd291b66aB0E17b9C6d46D2Ec5fEC15190 -n ropsten
+sol2uml class 0xa19833bd291b66aB0E17b9C6d46D2Ec5fEC15190 -n ropsten
 ```
 
 To generate all Solidity files under some root folder and output the svg file to a specific location
 ```bash
-sol2uml path/to/contracts/root/folder -o ./outputFile.svg
+sol2uml class path/to/contracts/root/folder -o ./outputFile.svg
 ```
 
 To generate a diagram of all contracts in a single Solidity file, the output file in png format to output file `./someFile.png`
 ```bash
-sol2uml path/to/contracts/root/folder/solidity/file.sol -f png -o ./someFile.png
+sol2uml class path/to/contracts/root/folder/solidity/file.sol -f png -o ./someFile.png
 ```
 
 To generate a diagram of all Solidity files under the `contracts` and `node_modules/openzeppelin-solidity` folders.  The output will be `contracts.svg` and `contracts.png` files in the working folder.
 ```bash
-sol2uml ./contracts,node_modules/openzeppelin-solidity -f all -v
+sol2uml class ./contracts,node_modules/openzeppelin-solidity -f all -v
 ```
 
 To generate a diagram of all Solidity files under the working folder ignoring and files under the `solparse`, `@solidity-parser` and `ethlint` folders, which will be under the `node_modules` folder.
 ```bash
-sol2uml -i solparse,@solidity-parser,ethlint
+sol2uml class -i solparse,@solidity-parser,ethlint
 ```
 
-## Application Programming Interface (API)
-
-The main function that parses Solidity source code from files or files in folders is [parseUmlClassesFromFiles](./lib/fileParser.d.ts#L3). This returns an array of UML class objects.
- 
-[EtherscanParser](./lib/etherscanParser.d.ts#L5) is a class that parses Etherscan's verified Solidity source code for a contract. For example
-```ts
-import { convertUmlClassesToSvg, EtherscanParser } from 'sol2uml'
-
-async function generateSvg() {
-  const etherscanParser = new EtherscanParser()
-
-  // get the verified source code from Etherscan for the contract address and
-  // parse Solidity into UML class objects
-  const umlClasses = await etherscanParser.getUmlClasses('0xf5dce57282a584d2746faf1593d3121fcac444dc')
-
-  // Convert UML classes to a svg string
-  const svg = await convertUmlClassesToSvg(umlClasses)
-}
-```
-
-[generateFilesFromUmlClasses](./lib/converter.d.ts#L3) is used to write the dot, svg and png files from an array of UML class objects.
-
-# UML Syntax
+# UML Class Diagram Syntax
 
 Good online resources for learning UML
 * [UML 2 Class Diagramming Guidelines](http://www.agilemodeling.com/style/classDiagram.htm)
@@ -154,9 +203,9 @@ A Solidity variable becomes an attribute in UML and a Solidity function becomes 
 
 Lines:
 - Solid lines for
-    - link the contract types of storage (state) variables. This can be linked to contracts, interfaces or libraries.
+    - link the contract types of storage (state) variables. This can be linked to contracts, interfaces, libraries or file level structs and enums.
     - generalisations of contracts and abstract contracts.
-    - aggregated structs and enums
+    - aggregated contract level structs and enums.
 - Dashed lines for
     - generalisations of interfaces.
     - types of memory variables.
@@ -164,7 +213,19 @@ Lines:
 Heads/Tails:
 - An empty triangle head for generalisations of contracts, interfaces and abstract contracts.
 - An open arrow head for storage or memory variable dependencies
-- A diamond tail for aggregations of structs and enums
+- A diamond tail for aggregations of contract level structs and enums
+
+## Storage diagram
+
+![FileLevel-storage](./examples/storage/FileLevel-storage.png)
+
+See more storage slot diagrams [here](./examples/storage/README.md).
+
+# Version 2.x changes
+
+The biggest change with 2.x is the introduction of subcommands as sol2uml can now draw contract storage diagrams.
+
+See [version 2.x](./version2.md) for a list of changes from 1.x.
 
 # Contribution
 

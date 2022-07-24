@@ -8,27 +8,32 @@ import {
     UmlClass,
     Visibility,
 } from './umlClass'
+import { isAddress } from './utils/regEx'
 
 export interface ClassOptions {
-    hideAttributes?: boolean
-    hideOperators?: boolean
+    hideVariables?: boolean
+    hideFunctions?: boolean
     hideStructs?: boolean
     hideEnums?: boolean
     hideLibraries?: boolean
     hideInterfaces?: boolean
-    hideInternals?: boolean
+    hidePrivates?: boolean
+    hideAbstracts?: boolean
+    hideFilename?: boolean
 }
 
-export const dotUmlClass = (
+export const convertClass2Dot = (
     umlClass: UmlClass,
     options: ClassOptions = {}
 ): string => {
-    // do not include library, interface, struct or enum classes if hidden
+    // do not include library, interface, abstracts, struct or enum classes if hidden
     if (
         (options.hideLibraries &&
             umlClass.stereotype === ClassStereotype.Library) ||
         (options.hideInterfaces &&
             umlClass.stereotype === ClassStereotype.Interface) ||
+        (options.hideAbstracts &&
+            umlClass.stereotype === ClassStereotype.Abstract) ||
         (options.hideStructs &&
             umlClass.stereotype === ClassStereotype.Struct) ||
         (options.hideEnums && umlClass.stereotype === ClassStereotype.Enum)
@@ -36,33 +41,35 @@ export const dotUmlClass = (
         return ''
     }
 
-    let dotString = `\n${umlClass.id} [label="{${dotClassTitle(umlClass)}`
+    let dotString = `\n${umlClass.id} [label="{${dotClassTitle(
+        umlClass,
+        options
+    )}`
 
     // Add attributes
-    if (!options.hideAttributes) {
+    if (!options.hideVariables) {
         dotString += dotAttributeVisibilities(umlClass, options)
     }
 
     // Add operators
-    if (!options.hideOperators) {
+    if (!options.hideFunctions) {
         dotString += dotOperatorVisibilities(umlClass, options)
     }
 
     dotString += '}"]'
 
-    // Output structs and enums
-    if (!options.hideStructs) {
-        dotString += dotStructs(umlClass)
-    }
-    if (!options.hideEnums) {
-        dotString += dotEnums(umlClass)
-    }
-
     return dotString
 }
 
-const dotClassTitle = (umlClass: UmlClass): string => {
+const dotClassTitle = (
+    umlClass: UmlClass,
+    options: { hideFilename?: boolean } = {}
+): string => {
     let stereoName: string = ''
+    const relativePath =
+        options.hideFilename || isAddress(umlClass.relativePath)
+            ? ''
+            : `\\n${umlClass.relativePath}`
     switch (umlClass.stereotype) {
         case ClassStereotype.Abstract:
             stereoName = 'Abstract'
@@ -81,16 +88,18 @@ const dotClassTitle = (umlClass: UmlClass): string => {
             break
         default:
             // Contract or undefined stereotype will just return the UmlClass name
-            return umlClass.name
+            return `${umlClass.name}${relativePath}`
     }
 
-    return `\\<\\<${stereoName}\\>\\>\\n${umlClass.name}`
+    return `\\<\\<${stereoName}\\>\\>\\n${umlClass.name}${relativePath}`
 }
 
 const dotAttributeVisibilities = (
     umlClass: UmlClass,
-    options: { hideInternals?: boolean } = {}
+    options: { hidePrivates?: boolean } = {}
 ): string => {
+    if (umlClass.attributes.length === 0) return ''
+
     let dotString = '| '
     // if a struct or enum then no visibility group
     if (
@@ -107,13 +116,13 @@ const dotAttributeVisibilities = (
         // For each attribute of te UML Class
         for (const attribute of umlClass.attributes) {
             if (
-                !options.hideInternals &&
+                !options.hidePrivates &&
                 vizGroup === 'Private' &&
                 attribute.visibility === Visibility.Private
             ) {
                 attributes.push(attribute)
             } else if (
-                !options.hideInternals &&
+                !options.hidePrivates &&
                 vizGroup === 'Internal' &&
                 attribute.visibility === Visibility.Internal
             ) {
@@ -163,8 +172,10 @@ const dotAttributes = (
 
 const dotOperatorVisibilities = (
     umlClass: UmlClass,
-    options: { hideInternals?: boolean } = {}
+    options: { hidePrivates?: boolean } = {}
 ): string => {
+    if (umlClass.operators.length === 0) return ''
+
     let dotString = '| '
 
     // For each visibility group
@@ -174,13 +185,13 @@ const dotOperatorVisibilities = (
         // For each attribute of te UML Class
         for (const operator of umlClass.operators) {
             if (
-                !options.hideInternals &&
+                !options.hidePrivates &&
                 vizGroup === 'Private' &&
                 operator.visibility === Visibility.Private
             ) {
                 operators.push(operator)
             } else if (
-                !options.hideInternals &&
+                !options.hidePrivates &&
                 vizGroup === 'Internal' &&
                 operator.visibility === Visibility.Internal
             ) {
@@ -307,51 +318,4 @@ const dotParameters = (
     }
 
     return dotString + ')'
-}
-
-const dotStructs = (umlClass: UmlClass): string => {
-    let dotString = ''
-    let structCount = 0
-
-    // for each struct declared in the contract
-    for (const structKey of Object.keys(umlClass.structs)) {
-        const structId = umlClass.id + 'struct' + structCount++
-        dotString += `\n"${structId}" [label="{\\<\\<struct\\>\\>\\n${structKey}|`
-
-        // output each attribute of the struct
-        for (const attribute of umlClass.structs[structKey]) {
-            dotString += attribute.name + ': ' + attribute.type + '\\l'
-        }
-
-        dotString += '}"]'
-
-        // Add the association to the contract the struct was declared in
-        dotString += `\n"${structId}" -> ${umlClass.id} [arrowhead=diamond, weight=3]`
-    }
-
-    return dotString
-}
-
-const dotEnums = (umlClass: UmlClass): string => {
-    let dotString = ''
-    let enumCount = 0
-
-    // for each enum declared in the contract
-    for (const enumKey of Object.keys(umlClass.enums)) {
-        const enumId = umlClass.id + 'enum' + enumCount++
-        dotString += `\n"${enumId}" [label="{\\<\\<enum\\>\\>\\n${enumKey}|`
-
-        // output each enum value
-        let enumIndex = 0
-        for (const value of umlClass.enums[enumKey]) {
-            dotString += value + ': ' + enumIndex++ + '\\l'
-        }
-
-        dotString += '}"]'
-
-        // Add the association to the contract the enum was declared in
-        dotString += `\n"${enumId}" -> ${umlClass.id} [arrowhead=diamond, weight=3]`
-    }
-
-    return dotString
 }

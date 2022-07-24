@@ -13,7 +13,7 @@ describe('Etherscan', () => {
         const sourceCode = await etherscan.getSourceCode(
             '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413'
         )
-        expect(sourceCode).toHaveLength(1)
+        expect(sourceCode.files).toHaveLength(1)
     })
 
     test('Get UML Classes', async () => {
@@ -21,7 +21,7 @@ describe('Etherscan', () => {
             'HPD85TXCG1HW3N5G6JJXK1A7EE5K86CYBJ'
         )
 
-        const umlClasses = await etherscan.getUmlClasses(etherDelta)
+        const { umlClasses } = await etherscan.getUmlClasses(etherDelta)
 
         expect(umlClasses).toHaveLength(7)
     })

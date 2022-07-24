@@ -1,9 +1,8 @@
 import axios from 'axios'
 import { ASTNode } from '@solidity-parser/parser/dist/src/ast-types'
 import { parse } from '@solidity-parser/parser'
-import { VError } from 'verror'
 
-import { convertNodeToUmlClass } from './parser'
+import { convertAST2UmlClasses } from './converterAST2Classes'
 import { UmlClass } from './umlClass'
 
 const networks = <const>[
@@ -14,6 +13,7 @@ const networks = <const>[
     'goerli',
     'polygon',
     'bsc',
+    'arbitrum',
 ]
 type Network = typeof networks[number]
 
@@ -36,6 +36,8 @@ export class EtherscanParser {
         } else if (network === 'bsc') {
             this.url = 'https://api.bscscan.com/api'
             this.apikey = 'APYH49FXVY9UA3KTDI6F4WP3KPIC86NITN'
+        } else if (network === 'arbitrum') {
+            this.url = 'https://api.arbiscan.io/api'
         } else {
             this.url = `https://api-${network}.etherscan.io/api`
         }
@@ -46,18 +48,25 @@ export class EtherscanParser {
      * @param contractAddress Ethereum contract address with a 0x prefix
      * @return Promise with an array of UmlClass objects
      */
-    async getUmlClasses(contractAddress: string): Promise<UmlClass[]> {
-        const sourceFiles = await this.getSourceCode(contractAddress)
+    async getUmlClasses(
+        contractAddress: string
+    ): Promise<{ umlClasses: UmlClass[]; contractName: string }> {
+        const { files, contractName } = await this.getSourceCode(
+            contractAddress
+        )
 
         let umlClasses: UmlClass[] = []
 
-        for (const sourceFile of sourceFiles) {
-            const node = await this.parseSourceCode(sourceFile.code)
-            const umlClass = convertNodeToUmlClass(node, sourceFile.filename)
+        for (const file of files) {
+            const node = await this.parseSourceCode(file.code)
+            const umlClass = convertAST2UmlClasses(node, file.filename)
             umlClasses = umlClasses.concat(umlClass)
         }
 
-        return umlClasses
+        return {
+            umlClasses,
+            contractName,
+        }
     }
 
     /**
@@ -66,14 +75,21 @@ export class EtherscanParser {
      * @param contractAddress Ethereum contract address with a 0x prefix
      * @return Promise string of Solidity code
      */
-    async getSolidityCode(contractAddress: string): Promise<string> {
-        const sourceFiles = await this.getSourceCode(contractAddress)
+    async getSolidityCode(
+        contractAddress: string
+    ): Promise<{ solidityCode: string; contractName: string }> {
+        const { files, contractName } = await this.getSourceCode(
+            contractAddress
+        )
 
         let solidityCode = ''
-        sourceFiles.forEach((sourceFile) => {
-            solidityCode += sourceFile.code
+        files.forEach((file) => {
+            solidityCode += file.code
         })
-        return solidityCode
+        return {
+            solidityCode,
+            contractName,
+        }
     }
 
     /**
@@ -87,9 +103,9 @@ export class EtherscanParser {
 
             return node
         } catch (err) {
-            throw new VError(
-                err,
-                `Failed to parse solidity code from source code:\n${sourceCode}`
+            throw new Error(
+                `Failed to parse solidity code from source code:\n${sourceCode}`,
+                { cause: err }
             )
         }
     }
@@ -98,9 +114,10 @@ export class EtherscanParser {
      * Calls Etherscan to get the verified source code for the specified contract address
      * @param contractAddress Ethereum contract address with a 0x prefix
      */
-    async getSourceCode(
-        contractAddress: string
-    ): Promise<{ code: string; filename: string }[]> {
+    async getSourceCode(contractAddress: string): Promise<{
+        files: { code: string; filename: string }[]
+        contractName: string
+    }> {
         const description = `get verified source code for address ${contractAddress} from Etherscan API.`
 
         try {
@@ -151,8 +168,9 @@ export class EtherscanParser {
                             })
                         )
                     } catch (err) {
-                        throw new VError(
-                            `Failed to parse Solidity source code from Etherscan's SourceCode. ${result.SourceCode}`
+                        throw new Error(
+                            `Failed to parse Solidity source code from Etherscan's SourceCode. ${result.SourceCode}`,
+                            { cause: err }
                         )
                     }
                 }
@@ -172,7 +190,10 @@ export class EtherscanParser {
                     filename: contractAddress,
                 }
             })
-            return results.flat(1)
+            return {
+                files: results.flat(1),
+                contractName: response.data.result[0].ContractName,
+            }
         } catch (err) {
             if (err.message) {
                 throw err
@@ -180,8 +201,9 @@ export class EtherscanParser {
             if (!err.response) {
                 throw new Error(`Failed to ${description}. No HTTP response.`)
             }
-            throw new VError(
-                `Failed to ${description}. HTTP status code ${err.response?.status}, status text: ${err.response?.statusText}`
+            throw new Error(
+                `Failed to ${description}. HTTP status code ${err.response?.status}, status text: ${err.response?.statusText}`,
+                { cause: err }
             )
         }
     }

@@ -5,6 +5,7 @@ import {
     EnumDefinition,
     EnumValue,
     Expression,
+    StateVariableDeclarationVariable,
     StructDefinition,
     TypeName,
     UserDefinedTypeName,
@@ -14,7 +15,9 @@ import {
 import * as path from 'path'
 
 import {
+    AttributeType,
     ClassStereotype,
+    Import,
     OperatorStereotype,
     Parameter,
     ReferenceType,
@@ -33,13 +36,15 @@ import {
 
 const debug = require('debug')('sol2uml')
 
-export function convertNodeToUmlClass(
+let umlClasses: UmlClass[] = []
+
+export function convertAST2UmlClasses(
     node: ASTNode,
     relativePath: string,
     filesystem: boolean = false
 ): UmlClass[] {
-    let umlClasses: UmlClass[] = []
-    const importedPaths: string[] = []
+    const imports: Import[] = []
+    umlClasses = []
 
     if (node.type === 'SourceUnit') {
         node.children.forEach((childNode) => {
@@ -95,7 +100,17 @@ export function convertNodeToUmlClass(
                         const importPath = require.resolve(childNode.path, {
                             paths: [codeFolder],
                         })
-                        importedPaths.push(importPath)
+                        imports.push({
+                            absolutePath: importPath,
+                            classNames: childNode.symbolAliases
+                                ? childNode.symbolAliases.map((alias) => {
+                                      return {
+                                          className: alias[0],
+                                          alias: alias[1],
+                                      }
+                                  })
+                                : [],
+                        })
                     } catch (err) {
                         debug(
                             `Failed to resolve import ${childNode.path} from file ${relativePath}`
@@ -104,7 +119,17 @@ export function convertNodeToUmlClass(
                 } else {
                     // this has come from Etherscan
                     const importPath = path.join(codeFolder, childNode.path)
-                    importedPaths.push(importPath)
+                    imports.push({
+                        absolutePath: importPath,
+                        classNames: childNode.symbolAliases
+                            ? childNode.symbolAliases.map((alias) => {
+                                  return {
+                                      className: alias[0],
+                                      alias: alias[1],
+                                  }
+                              })
+                            : [],
+                    })
                 }
             }
         })
@@ -113,7 +138,7 @@ export function convertNodeToUmlClass(
     }
 
     umlClasses.forEach((umlClass) => {
-        umlClass.importedPaths = importedPaths
+        umlClass.imports = imports
     })
 
     return umlClasses
@@ -124,9 +149,11 @@ function parseStructDefinition(
     node: StructDefinition
 ): UmlClass {
     node.members.forEach((member: VariableDeclaration) => {
+        const [type, attributeType] = parseTypeName(member.typeName)
         umlClass.attributes.push({
             name: member.name,
-            type: parseTypeName(member.typeName),
+            type,
+            attributeType,
         })
     })
 
@@ -173,13 +200,23 @@ function parseContractDefinition(
     // For each sub node
     node.subNodes.forEach((subNode) => {
         if (isStateVariableDeclaration(subNode)) {
-            subNode.variables.forEach((variable: VariableDeclaration) => {
-                umlClass.attributes.push({
-                    visibility: parseVisibility(variable.visibility),
-                    name: variable.name,
-                    type: parseTypeName(variable.typeName),
-                })
-            })
+            subNode.variables.forEach(
+                (variable: StateVariableDeclarationVariable) => {
+                    const [type, attributeType] = parseTypeName(
+                        variable.typeName
+                    )
+                    const valueStore =
+                        variable.isDeclaredConst || variable.isImmutable
+
+                    umlClass.attributes.push({
+                        visibility: parseVisibility(variable.visibility),
+                        name: variable.name,
+                        type,
+                        attributeType,
+                        compiled: valueStore,
+                    })
+                }
+            )
 
             // Recursively parse variables for associations
             umlClass = addAssociations(subNode.variables, umlClass)
@@ -266,27 +303,29 @@ function parseContractDefinition(
             // Recursively parse event parameters for associations
             umlClass = addAssociations(subNode.parameters, umlClass)
         } else if (isStructDefinition(subNode)) {
-            let structMembers: Parameter[] = []
-
-            subNode.members.forEach((member) => {
-                structMembers.push({
-                    name: member.name,
-                    type: parseTypeName(member.typeName),
-                })
+            const structClass = new UmlClass({
+                name: subNode.name,
+                absolutePath: umlClass.absolutePath,
+                relativePath: umlClass.relativePath,
+                stereotype: ClassStereotype.Struct,
             })
+            parseStructDefinition(structClass, subNode)
+            umlClasses.push(structClass)
 
-            umlClass.structs[subNode.name] = structMembers
-
-            // Recursively parse members for associations
-            umlClass = addAssociations(subNode.members, umlClass)
+            // list as contract level struct
+            umlClass.structs.push(structClass.id)
         } else if (isEnumDefinition(subNode)) {
-            let enumValues: string[] = []
-
-            subNode.members.forEach((member) => {
-                enumValues.push(member.name)
+            const enumClass = new UmlClass({
+                name: subNode.name,
+                absolutePath: umlClass.absolutePath,
+                relativePath: umlClass.relativePath,
+                stereotype: ClassStereotype.Enum,
             })
+            parseEnumDefinition(enumClass, subNode)
+            umlClasses.push(enumClass)
 
-            umlClass.enums[subNode.name] = enumValues
+            // list as contract level enum
+            umlClass.enums.push(enumClass.id)
         }
     })
 
@@ -294,7 +333,10 @@ function parseContractDefinition(
 }
 
 // Recursively parse AST nodes for associations
-function addAssociations(nodes: ASTNode[], umlClass: UmlClass): UmlClass {
+function addAssociations(
+    nodes: (ASTNode & { isStateVar?: boolean })[],
+    umlClass: UmlClass
+): UmlClass {
     if (!nodes || !Array.isArray(nodes)) {
         debug(
             'Warning - can not recursively parse AST nodes for associations. Invalid nodes array'
@@ -308,6 +350,11 @@ function addAssociations(nodes: ASTNode[], umlClass: UmlClass): UmlClass {
             break
         }
 
+        // If state variable then mark as a Storage reference, else Memory
+        const referenceType = node.isStateVar!
+            ? ReferenceType.Storage
+            : ReferenceType.Memory
+
         // Recursively parse sub nodes that can has variable declarations
         switch (node.type) {
             case 'VariableDeclaration':
@@ -315,34 +362,51 @@ function addAssociations(nodes: ASTNode[], umlClass: UmlClass): UmlClass {
                     break
                 }
                 if (node.typeName.type === 'UserDefinedTypeName') {
-                    // If state variable then mark as a Storage reference, else Memory
-                    const referenceType = node.isStateVar
-                        ? ReferenceType.Storage
-                        : ReferenceType.Memory
-
                     // Library references can have a Library dot variable notation. eg Set.Data
-                    const targetUmlClassName = parseClassName(
+                    const { umlClassName, structOrEnum } = parseClassName(
                         node.typeName.namePath
                     )
-
                     umlClass.addAssociation({
                         referenceType,
-                        targetUmlClassName,
+                        targetUmlClassName: umlClassName,
                     })
+                    if (structOrEnum) {
+                        umlClass.addAssociation({
+                            referenceType,
+                            targetUmlClassName: structOrEnum,
+                        })
+                    }
                 } else if (node.typeName.type === 'Mapping') {
                     umlClass = addAssociations(
                         [node.typeName.keyType],
                         umlClass
                     )
                     umlClass = addAssociations(
-                        [node.typeName.valueType],
+                        [
+                            {
+                                ...node.typeName.valueType,
+                                isStateVar: node.isStateVar,
+                            },
+                        ],
                         umlClass
                     )
+                    // Array of user defined types
+                } else if (
+                    node.typeName.type == 'ArrayTypeName' &&
+                    node.typeName.baseTypeName.type === 'UserDefinedTypeName'
+                ) {
+                    const { umlClassName } = parseClassName(
+                        node.typeName.baseTypeName.namePath
+                    )
+                    umlClass.addAssociation({
+                        referenceType,
+                        targetUmlClassName: umlClassName,
+                    })
                 }
                 break
             case 'UserDefinedTypeName':
                 umlClass.addAssociation({
-                    referenceType: ReferenceType.Memory,
+                    referenceType: referenceType,
                     targetUmlClassName: node.namePath,
                 })
                 break
@@ -475,20 +539,27 @@ function parseExpression(expression: Expression, umlClass: UmlClass): UmlClass {
     return umlClass
 }
 
-function parseClassName(rawClassName: string): string {
+function parseClassName(rawClassName: string): {
+    umlClassName: string
+    structOrEnum: string
+} {
     if (
         !rawClassName ||
         typeof rawClassName !== 'string' ||
         rawClassName.length === 0
     ) {
-        return ''
+        return {
+            umlClassName: '',
+            structOrEnum: rawClassName,
+        }
     }
 
     // Split the name on dot
     const splitUmlClassName = rawClassName.split('.')
-    const umlClassName = splitUmlClassName[0]
-
-    return umlClassName
+    return {
+        umlClassName: splitUmlClassName[0],
+        structOrEnum: splitUmlClassName[1],
+    }
 }
 
 function parseVisibility(visibility: string): Visibility {
@@ -510,23 +581,36 @@ function parseVisibility(visibility: string): Visibility {
     }
 }
 
-function parseTypeName(typeName: TypeName): string {
+function parseTypeName(typeName: TypeName): [string, AttributeType] {
     switch (typeName.type) {
         case 'ElementaryTypeName':
-            return typeName.name
+            return [typeName.name, AttributeType.Elementary]
         case 'UserDefinedTypeName':
-            return typeName.namePath
+            return [typeName.namePath, AttributeType.UserDefined]
         case 'FunctionTypeName':
             // TODO add params and return type
-            return typeName.type + '\\(\\)'
+            return [typeName.type + '\\(\\)', AttributeType.Function]
         case 'ArrayTypeName':
-            return parseTypeName(typeName.baseTypeName) + '[]'
+            const [arrayElementType] = parseTypeName(typeName.baseTypeName)
+            let length: string = ''
+            if (Number.isInteger(typeName.length)) {
+                length = typeName.length.toString()
+            } else if (typeName.length?.type === 'NumberLiteral') {
+                length = typeName.length.number
+            } else if (typeName.length?.type === 'Identifier') {
+                length = typeName.length.name
+            }
+            // TODO does not currently handle Expression types like BinaryOperation
+            return [arrayElementType + '[' + length + ']', AttributeType.Array]
         case 'Mapping':
             const key =
                 (<ElementaryTypeName>typeName.keyType)?.name ||
                 (<UserDefinedTypeName>typeName.keyType)?.namePath
-            const value = parseTypeName(typeName.valueType)
-            return 'mapping\\(' + key + '=\\>' + value + '\\)'
+            const [valueType] = parseTypeName(typeName.valueType)
+            return [
+                'mapping\\(' + key + '=\\>' + valueType + '\\)',
+                AttributeType.Mapping,
+            ]
         default:
             throw Error(`Invalid typeName ${typeName}`)
     }
@@ -540,9 +624,10 @@ function parseParameters(params: VariableDeclaration[]): Parameter[] {
     let parameters: Parameter[] = []
 
     for (const param of params) {
+        const [type] = parseTypeName(param.typeName)
         parameters.push({
             name: param.name,
-            type: parseTypeName(param.typeName),
+            type,
         })
     }
 

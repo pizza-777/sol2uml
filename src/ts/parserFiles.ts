@@ -3,9 +3,8 @@ import { basename, extname, relative } from 'path'
 import klaw from 'klaw'
 import { ASTNode } from '@solidity-parser/parser/dist/src/ast-types'
 import { parse } from '@solidity-parser/parser'
-import { VError } from 'verror'
 
-import { convertNodeToUmlClass } from './parser'
+import { convertAST2UmlClasses } from './converterAST2Classes'
 import { UmlClass } from './umlClass'
 
 const debug = require('debug')('sol2uml')
@@ -13,12 +12,12 @@ const debug = require('debug')('sol2uml')
 export const parseUmlClassesFromFiles = async (
     filesOrFolders: string[],
     ignoreFilesOrFolders: string[],
-    depthLimit: number = -1
+    subfolders: number = -1
 ): Promise<UmlClass[]> => {
     const files = await getSolidityFilesFromFolderOrFiles(
         filesOrFolders,
         ignoreFilesOrFolders,
-        depthLimit
+        subfolders
     )
 
     let umlClasses: UmlClass[] = []
@@ -28,7 +27,7 @@ export const parseUmlClassesFromFiles = async (
 
         const relativePath = relative(process.cwd(), file)
 
-        const umlClass = convertNodeToUmlClass(node, relativePath, true)
+        const umlClass = convertAST2UmlClasses(node, relativePath, true)
         umlClasses = umlClasses.concat(umlClass)
     }
 
@@ -38,7 +37,7 @@ export const parseUmlClassesFromFiles = async (
 export async function getSolidityFilesFromFolderOrFiles(
     folderOrFilePaths: string[],
     ignoreFilesOrFolders: string[],
-    depthLimit: number = -1
+    subfolders: number = -1
 ): Promise<string[]> {
     let files: string[] = []
 
@@ -46,7 +45,7 @@ export async function getSolidityFilesFromFolderOrFiles(
         const result = await getSolidityFilesFromFolderOrFile(
             folderOrFilePath,
             ignoreFilesOrFolders,
-            depthLimit
+            subfolders
         )
         files = files.concat(result)
     }
@@ -110,9 +109,9 @@ export function getSolidityFilesFromFolderOrFile(
                     `No such file or folder ${folderOrFilePath}. Make sure you pass in the root directory of the contracts`
                 )
             } else {
-                error = new VError(
-                    err,
-                    `Failed to get Solidity files under folder or file ${folderOrFilePath}`
+                error = new Error(
+                    `Failed to get Solidity files under folder or file ${folderOrFilePath}`,
+                    { cause: err }
                 )
             }
 
@@ -123,10 +122,19 @@ export function getSolidityFilesFromFolderOrFile(
 }
 
 export function parseSolidityFile(fileName: string): ASTNode {
+    let solidityCode: string
     try {
-        const solidityCode = readFileSync(fileName, 'utf8')
+        solidityCode = readFileSync(fileName, 'utf8')
+    } catch (err) {
+        throw new Error(`Failed to read solidity file ${fileName}.`, {
+            cause: err,
+        })
+    }
+    try {
         return parse(solidityCode, {})
     } catch (err) {
-        throw new VError(err, `Failed to parse solidity file ${fileName}.`)
+        throw new Error(`Failed to parse solidity code in file ${fileName}.`, {
+            cause: err,
+        })
     }
 }

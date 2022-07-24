@@ -6,7 +6,7 @@ describe('Parser', () => {
             const files = await getSolidityFilesFromFolderOrFile(
                 './src/contracts'
             )
-            expect(files).toHaveLength(18)
+            expect(files).toHaveLength(24)
         })
 
         test('get Solidity files from folder with no sol files', async () => {
@@ -23,7 +23,7 @@ describe('Parser', () => {
 
         test('get Solidity files including Open Zeppelin', async () => {
             const files = await getSolidityFilesFromFolderOrFile('.')
-            expect(files).toHaveLength(102)
+            expect(files).toHaveLength(108)
         }, 10000)
 
         describe('Failures', () => {
