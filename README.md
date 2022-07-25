@@ -195,7 +195,7 @@ A Solidity variable becomes an attribute in UML and a Solidity function becomes 
 
 * event
 * modifier
-* abstract - is there is no function body on a contract, the operator is marked as abstract. Operators on an Interface do not have an abstract stereotype as all operators are abstract.
+* abstract - if there is no function body on a contract, the operator is marked as abstract. Operators on an Interface do not have an abstract stereotype as all operators are abstract.
 * fallback - abstract fallback functions will just have an abstract stereotype.
 * payable - payable fallback functions will just have a fallback stereotype.
 
