@@ -36,3 +36,20 @@ This is a contrived example where structs depend on other structs [fileLevel.sol
 
 ![FileLevel](./FileLevel-storage.png)
 
+## Contract Inheritance
+
+The following example shows the storage slots with contract inheritance. This includes diamond inheritance, imports from other files and import aliases.
+
+![Inheritance Class Diagram](../inheritanceDiamond.png)
+
+```
+sol2uml class -c -f png -o examples/inheritanceDiamond.png ./src/contracts/inheritance
+```
+
+The storage slots for contract `D` in [inheritance/common.sol](../../src/contracts/inheritance/common.sol).
+
+![Inheritance](./inheritanceStorage.png)
+
+```
+storage -v -c D -o examples/storage/inheritanceStorage.svg ./src/contracts/inheritance
+```

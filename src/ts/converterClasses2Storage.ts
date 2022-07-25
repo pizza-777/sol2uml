@@ -1,4 +1,5 @@
 import { Attribute, AttributeType, ClassStereotype, UmlClass } from './umlClass'
+import { findAssociatedClass } from './associations'
 
 export enum StorageType {
     Contract,
@@ -83,12 +84,10 @@ const parseStorage = (
     )
     // Recursively parse each new inherited contract
     newInheritedContracts.forEach((parent) => {
-        const parentClass = umlClasses.find(
-            (umlClass) => umlClass.name === parent.targetUmlClassName
-        )
+        const parentClass = findAssociatedClass(parent, umlClass, umlClasses)
         if (!parentClass)
             throw Error(
-                `Failed to find parent contract ${parent.targetUmlClassName} of ${umlClass.name}`
+                `Failed to find parent contract ${parent.targetUmlClassName} of ${umlClass.absolutePath}`
             )
         // recursively parse inherited contract
         parseStorage(
