@@ -184,14 +184,9 @@ program
                 combinedOptions
             )
 
-            const filteredUmlClasses = classesConnectedToBaseContracts(
-                umlClasses,
-                [combinedOptions.contractName || contractName]
-            )
-
             const storageObjects = convertClasses2StorageObjects(
                 combinedOptions.contractName || contractName,
-                filteredUmlClasses
+                umlClasses
             )
             if (isAddress(fileFolderAddress)) {
                 // The first object is the contract
