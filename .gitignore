@@ -1,8 +1,8 @@
 node_modules
 .idea
 .vscode
-lib/__tests__
-lib/*.map
+lib/**/__tests__
+lib/**/*.map
 logs
 *.logs
 *.dot

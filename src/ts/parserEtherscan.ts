@@ -11,6 +11,7 @@ const networks = <const>[
     'kovan',
     'rinkeby',
     'goerli',
+    'sepolia',
     'polygon',
     'bsc',
     'arbitrum',

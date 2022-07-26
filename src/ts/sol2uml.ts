@@ -51,6 +51,7 @@ The Solidity code can be pulled from verified source code on Blockchain explorer
                 'kovan',
                 'rinkeby',
                 'goerli',
+                'sepolia',
             ])
             .default('mainnet')
     )
