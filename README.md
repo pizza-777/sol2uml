@@ -20,16 +20,19 @@ The following installation assumes [Node.js](https://nodejs.org/en/download/) ha
 `sol2uml` works with node 14 or above.
 
 To install globally so you can run `sol2uml` from anywhere
+
 ```bash
 npm link sol2uml --only=production
 ```
 
 To upgrade run
+
 ```bash
 npm upgrade sol2uml -g
 ```
 
 To see which version you are using
+
 ```bash
 npm ls sol2uml -g
 ```
@@ -139,36 +142,43 @@ Options:
 ## UML Class diagram examples
 
 To generate a diagram of all contracts under the contracts folder and its sub folders
+
 ```bash
 sol2uml class ./contracts
 ```
 
 To generate a diagram of EtherDelta's contract from the verified source code on [Etherscan](https://etherscan.io/address/0x8d12A197cB00D4747a1fe03395095ce2A5CC6819#code). The output wil be a svg file `0x8d12A197cB00D4747a1fe03395095ce2A5CC6819.svg` in the working folder.
+
 ```bash
 sol2uml class 0x8d12A197cB00D4747a1fe03395095ce2A5CC6819
 ```
 
 To generate a diagram of EtherDelta's contract from the verified source code on [Etherscan Ropsten](https://ropsten.etherscan.io/address/0xa19833bd291b66aB0E17b9C6d46D2Ec5fEC15190#code). The output wil be a svg file `0xa19833bd291b66aB0E17b9C6d46D2Ec5fEC15190.svg` in the working folder.
+
 ```bash
 sol2uml class 0xa19833bd291b66aB0E17b9C6d46D2Ec5fEC15190 -n ropsten
 ```
 
 To generate all Solidity files under some root folder and output the svg file to a specific location
+
 ```bash
 sol2uml class path/to/contracts/root/folder -o ./outputFile.svg
 ```
 
 To generate a diagram of all contracts in a single Solidity file, the output file in png format to output file `./someFile.png`
+
 ```bash
 sol2uml class path/to/contracts/root/folder/solidity/file.sol -f png -o ./someFile.png
 ```
 
-To generate a diagram of all Solidity files under the `contracts` and `node_modules/openzeppelin-solidity` folders.  The output will be `contracts.svg` and `contracts.png` files in the working folder.
+To generate a diagram of all Solidity files under the `contracts` and `node_modules/openzeppelin-solidity` folders. The output will be `contracts.svg` and `contracts.png` files in the working folder.
+
 ```bash
 sol2uml class ./contracts,node_modules/openzeppelin-solidity -f all -v
 ```
 
 To generate a diagram of all Solidity files under the working folder ignoring and files under the `solparse`, `@solidity-parser` and `ethlint` folders, which will be under the `node_modules` folder.
+
 ```bash
 sol2uml class -i solparse,@solidity-parser,ethlint
 ```
@@ -176,8 +186,9 @@ sol2uml class -i solparse,@solidity-parser,ethlint
 # UML Class Diagram Syntax
 
 Good online resources for learning UML
-* [UML 2 Class Diagramming Guidelines](http://www.agilemodeling.com/style/classDiagram.htm)
-* [Creating class diagrams with UML](https://www.ionos.com/digitalguide/websites/web-development/class-diagrams-with-uml/)
+
+-   [UML 2 Class Diagramming Guidelines](http://www.agilemodeling.com/style/classDiagram.htm)
+-   [Creating class diagrams with UML](https://www.ionos.com/digitalguide/websites/web-development/class-diagrams-with-uml/)
 
 ## Terminology differences
 
@@ -187,33 +198,35 @@ A Solidity variable becomes an attribute in UML and a Solidity function becomes 
 
 ### Class stereotypes
 
-* Interface
-* Abstract - if any of the contract's functions are abstract, the class will have an Abstract stereotype. Child contracts of abstract contracts that do not implement all the abstract functions are currently not marked as Abstract.
-* Library
+-   Interface
+-   Abstract - if any of the contract's functions are abstract, the class will have an Abstract stereotype. Child contracts of abstract contracts that do not implement all the abstract functions are currently not marked as Abstract.
+-   Library
 
 ### Operator stereotypes
 
-* event
-* modifier
-* abstract - if there is no function body on a contract, the operator is marked as abstract. Operators on an Interface do not have an abstract stereotype as all operators are abstract.
-* fallback - abstract fallback functions will just have an abstract stereotype.
-* payable - payable fallback functions will just have a fallback stereotype.
+-   event
+-   modifier
+-   abstract - if there is no function body on a contract, the operator is marked as abstract. Operators on an Interface do not have an abstract stereotype as all operators are abstract.
+-   fallback - abstract fallback functions will just have an abstract stereotype.
+-   payable - payable fallback functions will just have a fallback stereotype.
 
 ## UML Associations
 
 Lines:
-- Solid lines for
-    - link the contract types of storage (state) variables. This can be linked to contracts, interfaces, libraries or file level structs and enums.
-    - generalisations of contracts and abstract contracts.
-    - aggregated contract level structs and enums.
-- Dashed lines for
-    - generalisations of interfaces.
-    - types of memory variables.
+
+-   Solid lines for
+    -   link the contract types of storage (state) variables. This can be linked to contracts, interfaces, libraries or file level structs and enums.
+    -   generalisations of contracts and abstract contracts.
+    -   aggregated contract level structs and enums.
+-   Dashed lines for
+    -   generalisations of interfaces.
+    -   types of memory variables.
 
 Heads/Tails:
-- An empty triangle head for generalisations of contracts, interfaces and abstract contracts.
-- An open arrow head for storage or memory variable dependencies
-- A diamond tail for aggregations of contract level structs and enums
+
+-   An empty triangle head for generalisations of contracts, interfaces and abstract contracts.
+-   An open arrow head for storage or memory variable dependencies
+-   A diamond tail for aggregations of contract level structs and enums
 
 ## Storage diagram
 

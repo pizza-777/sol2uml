@@ -9,7 +9,8 @@ export type OutputFormats = 'svg' | 'png' | 'dot' | 'all'
 
 export const writeOutputFiles = async (
     dot: string,
-    outputBaseName: string,
+    fileFolderAddress: string,
+    contractName: string,
     outputFormat: OutputFormats = 'svg',
     outputFilename?: string
 ): Promise<void> => {
@@ -22,20 +23,23 @@ export const writeOutputFiles = async (
         }
     }
 
+    // If all output then extension is svg
+    const outputExt = outputFormat === 'all' ? 'svg' : outputFormat
+
     if (!outputFilename) {
-        // If all output then extension is svg
-        const outputExt = outputFormat === 'all' ? 'svg' : outputFormat
-
-        // if outputBaseName is a folder
+        outputFilename =
+            path.join(process.cwd(), contractName) + '.' + outputExt
+    } else {
+        // check if outputFilename is a folder
         try {
-            const folderOrFile = lstatSync(outputBaseName)
+            const folderOrFile = lstatSync(outputFilename)
             if (folderOrFile.isDirectory()) {
-                const parsedDir = path.parse(process.cwd())
-                outputBaseName = path.join(process.cwd(), parsedDir.name)
+                outputFilename =
+                    path.join(process.cwd(), outputFilename, contractName) +
+                    '.' +
+                    outputExt
             }
-        } catch (err) {} // we can ignore errors as it just means outputBaseName is not a folder
-
-        outputFilename = outputBaseName + '.' + outputExt
+        } catch (err) {} // we can ignore errors as it just means outputFilename does not exist yet
     }
 
     const svg = convertDot2Svg(dot)

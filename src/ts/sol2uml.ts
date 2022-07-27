@@ -180,13 +180,14 @@ program
                 ...options,
             }
 
-            const { umlClasses, contractName } = await parserUmlClasses(
+            let { umlClasses, contractName } = await parserUmlClasses(
                 fileFolderAddress,
                 combinedOptions
             )
 
+            contractName = combinedOptions.contractName || contractName
             const storageObjects = convertClasses2StorageObjects(
-                combinedOptions.contractName || contractName,
+                contractName,
                 umlClasses
             )
             if (isAddress(fileFolderAddress)) {
@@ -200,6 +201,7 @@ program
             await writeOutputFiles(
                 dotString,
                 fileFolderAddress,
+                contractName,
                 combinedOptions.outputFormat,
                 combinedOptions.outputFileName
             )
