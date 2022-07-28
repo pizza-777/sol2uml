@@ -98,17 +98,18 @@ contract TestStorage is Parent, Parent2 {
         Resolved
     }
 
-    uint256 public constant N_COINS = 3;
+    uint256 public constant N_COINS = 2;
+    uint256 public constant MAX_COINS = 3;
     uint256 public constant SCALE = 1e18;
     uint256 internal constant DIVISOR = 1e18;
     address public immutable superUser;
     address internal immutable superUser2;
-    uint256 public immutable MAX_COINS;
 
     address owner;
     IERC20 token;
     IERC20[] tokens;
     IERC20[2] tokenPair;
+    IERC20[12] dozenTokens;
     address[N_COINS] coins;
     uint256[MAX_COINS] maxCoins;
     IERC20[N_COINS] tokens;

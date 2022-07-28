@@ -215,6 +215,17 @@ function parseContractDefinition(
                         attributeType,
                         compiled: valueStore,
                     })
+
+                    // Is the variable a constant that could be used in declaring fixed sized arrays
+                    if (variable.isDeclaredConst) {
+                        if (variable?.expression.type === 'NumberLiteral') {
+                            umlClass.constants.push({
+                                name: variable.name,
+                                value: parseInt(variable.expression.number),
+                            })
+                        }
+                        // TODO handle expressions. eg N_COINS * 2
+                    }
                 }
             )
 

@@ -1,6 +1,7 @@
 import {
     Attribute,
     AttributeType,
+    ClassProperties,
     ClassStereotype,
     UmlClass,
 } from '../umlClass'
@@ -8,10 +9,16 @@ import { calcStorageByteSize, isElementary } from '../converterClasses2Storage'
 
 describe('storage parser', () => {
     describe('calc storage bytes size of', () => {
-        const defaultClassProperties = {
+        const defaultClassProperties: ClassProperties = {
             name: 'test',
             absolutePath: '/',
             relativePath: '.',
+            constants: [
+                {
+                    name: 'N_COINS',
+                    value: 2,
+                },
+            ],
         }
         test.each`
             type         | expected
@@ -31,46 +38,51 @@ describe('storage parser', () => {
             ${'bytes31'} | ${31}
             ${'string'}  | ${32}
         `('elementary type $type', ({ type, expected }) => {
-            const umlCLass = new UmlClass(defaultClassProperties)
+            const umlClass = new UmlClass(defaultClassProperties)
             const attribute: Attribute = {
                 attributeType: AttributeType.Elementary,
                 type,
                 name: 'varName',
             }
-            expect(calcStorageByteSize(attribute, umlCLass, [])).toEqual(
+            expect(calcStorageByteSize(attribute, umlClass, [])).toEqual(
                 expected
             )
         })
+
+        // TODO implement support for sizing expressions. eg
+        // ${'address[N_COINS * 2]'}      | ${128}
         test.each`
-            type                 | expected
-            ${'uint8[33][2][2]'} | ${256}
-            ${'address[]'}       | ${32}
-            ${'address[1]'}      | ${32}
-            ${'address[2]'}      | ${64}
-            ${'address[4]'}      | ${128}
-            ${'address[][2]'}    | ${32}
-            ${'address[2][2]'}   | ${128}
-            ${'address[32]'}     | ${1024}
-            ${'bytes32[]'}       | ${32}
-            ${'bytes1[1]'}       | ${32}
-            ${'bytes1[2]'}       | ${32}
-            ${'bytes1[32]'}      | ${32}
-            ${'bytes16[2]'}      | ${32}
-            ${'bytes17[2]'}      | ${64}
-            ${'bytes30[2]'}      | ${64}
-            ${'bytes30[6][2]'}   | ${384}
-            ${'bytes30[2][6]'}   | ${384}
-            ${'bytes128[4]'}     | ${512}
-            ${'bytes32[1]'}      | ${32}
-            ${'bytes32[2]'}      | ${64}
-            ${'bool[2][3]'}      | ${96}
-            ${'bool[3][2]'}      | ${64}
-            ${'bool[2][]'}       | ${32}
-            ${'bool[33][2]'}     | ${128}
-            ${'bool[33][2][2]'}  | ${256}
-            ${'bool[][64][64]'}  | ${32}
-            ${'bool[64][][64]'}  | ${32}
-            ${'bool[64][64][]'}  | ${32}
+            type                           | expected
+            ${'address[N_COINS]'}          | ${64}
+            ${'address[N_COINS][N_COINS]'} | ${128}
+            ${'uint8[33][2][2]'}           | ${256}
+            ${'address[]'}                 | ${32}
+            ${'address[1]'}                | ${32}
+            ${'address[2]'}                | ${64}
+            ${'address[4]'}                | ${128}
+            ${'address[][2]'}              | ${32}
+            ${'address[2][2]'}             | ${128}
+            ${'address[32]'}               | ${1024}
+            ${'bytes32[]'}                 | ${32}
+            ${'bytes1[1]'}                 | ${32}
+            ${'bytes1[2]'}                 | ${32}
+            ${'bytes1[32]'}                | ${32}
+            ${'bytes16[2]'}                | ${32}
+            ${'bytes17[2]'}                | ${64}
+            ${'bytes30[2]'}                | ${64}
+            ${'bytes30[6][2]'}             | ${384}
+            ${'bytes30[2][6]'}             | ${384}
+            ${'bytes128[4]'}               | ${512}
+            ${'bytes32[1]'}                | ${32}
+            ${'bytes32[2]'}                | ${64}
+            ${'bool[2][3]'}                | ${96}
+            ${'bool[3][2]'}                | ${64}
+            ${'bool[2][]'}                 | ${32}
+            ${'bool[33][2]'}               | ${128}
+            ${'bool[33][2][2]'}            | ${256}
+            ${'bool[][64][64]'}            | ${32}
+            ${'bool[64][][64]'}            | ${32}
+            ${'bool[64][64][]'}            | ${32}
         `('array type $type', ({ type, expected }) => {
             const umlCLass = new UmlClass(defaultClassProperties)
             const attribute: Attribute = {

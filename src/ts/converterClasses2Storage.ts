@@ -265,7 +265,7 @@ export const calcStorageByteSize = (
     }
     if (attribute.attributeType === AttributeType.Array) {
         // All array dimensions must be fixed. eg [2][3][8].
-        const result = attribute.type.match(/(\w+)(\[([1-9][0-9]*)\])+$/)
+        const result = attribute.type.match(/(\w+)(\[([\w][\w]*)\])+$/)
 
         // The above will not match any dynamic array dimensions, eg [],
         // as there needs to be one or more [0-9]+ in the square brackets
@@ -277,9 +277,23 @@ export const calcStorageByteSize = (
 
         // All array dimensions are fixes so we now need to multiply all the dimensions
         // to get a total number of array elements
-        const arrayDimensions = attribute.type.match(/\[\d+/g)
+        const arrayDimensions = attribute.type.match(/\[\w+/g)
         const dimensionsStr = arrayDimensions.map((d) => d.slice(1))
-        const dimensions = dimensionsStr.map((d) => parseInt(d))
+        const dimensions: number[] = dimensionsStr.map((dimension) => {
+            const dimensionNum = parseInt(dimension)
+            if (!isNaN(dimensionNum)) return dimensionNum
+
+            // Try and size array dimension from declared constants
+            const constant = umlClass.constants.find(
+                (constant) => constant.name === dimension
+            )
+            if (constant) {
+                return constant.value
+            }
+            throw Error(
+                `Could not size fixed sized array with dimension "${dimension}"`
+            )
+        })
 
         let elementSize: number
         // If a fixed sized array

@@ -63,6 +63,10 @@ export interface Association {
     targetUmlClassStereotype?: ClassStereotype;
     realization?: boolean;
 }
+export interface Constants {
+    name: string;
+    value: number;
+}
 export interface ClassProperties {
     name: string;
     absolutePath: string;
@@ -76,6 +80,7 @@ export interface ClassProperties {
     associations?: {
         [name: string]: Association;
     };
+    constants?: Constants[];
 }
 export declare class UmlClass implements ClassProperties {
     static idCounter: number;
@@ -85,6 +90,7 @@ export declare class UmlClass implements ClassProperties {
     relativePath: string;
     imports?: Import[];
     stereotype?: ClassStereotype;
+    constants: Constants[];
     attributes: Attribute[];
     operators: Operator[];
     enums: number[];

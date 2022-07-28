@@ -75,6 +75,11 @@ export interface Association {
     realization?: boolean
 }
 
+export interface Constants {
+    name: string
+    value: number
+}
+
 export interface ClassProperties {
     name: string
     absolutePath: string
@@ -86,6 +91,7 @@ export interface ClassProperties {
     attributes?: Attribute[]
     operators?: Operator[]
     associations?: { [name: string]: Association }
+    constants?: Constants[]
 }
 
 export class UmlClass implements ClassProperties {
@@ -98,6 +104,7 @@ export class UmlClass implements ClassProperties {
     imports?: Import[]
     stereotype?: ClassStereotype
 
+    constants: Constants[] = []
     attributes: Attribute[] = []
     operators: Operator[] = []
 
