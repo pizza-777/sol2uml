@@ -1,8 +1,8 @@
-import { StorageObject, Storage, StorageType } from './converterClasses2Storage'
+import { Storage, Variable, StorageType } from './converterClasses2Storage'
 
 const debug = require('debug')('sol2uml')
 
-export const convertStorage2Dot = (storageObjects: StorageObject[]): string => {
+export const convertStorages2Dot = (storages: Storage[]): string => {
     let dotString: string = `
 digraph StorageDiagram {
 rankdir=LR
@@ -10,16 +10,16 @@ color=black
 arrowhead=open
 node [shape=record, style=filled, fillcolor=gray95]`
 
-    // process contract and the struct objects
-    storageObjects.forEach((storageObject) => {
-        dotString = convertStorageObject2Dot(storageObject, dotString)
+    // process contract and the struct storages
+    storages.forEach((storage) => {
+        dotString = convertStorage2Dot(storage, dotString)
     })
 
     // link contract and structs to structs
-    storageObjects.forEach((slot) => {
-        slot.storages.forEach((storage) => {
-            if (storage.structObjectId) {
-                dotString += `\n ${slot.id}:${storage.id} -> ${storage.structObjectId}`
+    storages.forEach((slot) => {
+        slot.variables.forEach((storage) => {
+            if (storage.structStorageId) {
+                dotString += `\n ${slot.id}:${storage.id} -> ${storage.structStorageId}`
             }
         })
     })
@@ -32,68 +32,75 @@ node [shape=record, style=filled, fillcolor=gray95]`
     return dotString
 }
 
-export function convertStorageObject2Dot(
-    storageObject: StorageObject,
+export function convertStorage2Dot(
+    storage: Storage,
     dotString: string
 ): string {
     const steorotype =
-        storageObject.type === StorageType.Struct ? 'Struct' : 'Contract'
+        storage.type === StorageType.Struct ? 'Struct' : 'Contract'
 
-    // write object header with name and optional address
-    dotString += `\n${storageObject.id} [label="{\\<\\<${steorotype}\\>\\>\\n${
-        storageObject.name
-    }\\n${storageObject.address || ''} | `
+    // write storage header with name and optional address
+    dotString += `\n${storage.id} [label="${
+        storage.name
+    } \\<\\<${steorotype}\\>\\>\\n${storage.address || ''} | {`
+
+    const startingVariables = storage.variables.filter(
+        (s) => s.byteOffset === 0
+    )
 
     // write slot numbers
-    storageObject.storages.forEach((storage, i) => {
-        if (i === 0) {
-            dotString += `{slot | 0`
-        } else if (storage.byteOffset === 0) {
-            if (storage.fromSlot === storage.toSlot) {
-                dotString += `| ${storage.fromSlot}`
-            } else {
-                dotString += `| ${storage.fromSlot}-${storage.toSlot}`
-            }
+    dotString += '{ slot'
+    startingVariables.forEach((variable, i) => {
+        if (variable.fromSlot === variable.toSlot) {
+            dotString += `| ${variable.fromSlot} `
+        } else {
+            dotString += `| ${variable.fromSlot}-${variable.toSlot} `
         }
     })
 
-    // write storage types
-    storageObject.storages.forEach((storage, i) => {
-        const lastStorage = i > 0 ? storageObject.storages[i - 1] : undefined
-        const nextStorage =
-            i + 1 < storageObject.storages.length
-                ? storageObject.storages[i + 1]
-                : undefined
+    // write slot values if available
+    if (startingVariables[0]?.values[0]) {
+        dotString += '} | {value'
+        startingVariables.forEach((variable, i) => {
+            dotString += ` | ${variable.values[0]}`
+        })
+    }
 
-        if (i === 0) {
-            const contractVaraiblePrefix =
-                storageObject.type === StorageType.Contract
-                    ? '\\<inherited contract\\>.'
-                    : ''
-            dotString += `} | {type: ${contractVaraiblePrefix}variable (bytes) `
-        }
-        // if next storage is in the same slot
-        // and storage is the first in the slot
-        if (
-            nextStorage?.fromSlot === storage.fromSlot &&
-            storage.byteOffset === 0
-        ) {
-            dotString += `| { ${dotVariable(storage, storageObject.name)} `
-            return
-        }
-        // if last storage was on the same slot
-        // and the next storage is on a different slot
-        if (
-            lastStorage?.fromSlot === storage.fromSlot &&
-            (nextStorage?.fromSlot > storage.fromSlot ||
-                nextStorage === undefined)
-        ) {
-            dotString += `| ${dotVariable(storage, storageObject.name)} } `
-            return
-        }
+    const contractVariablePrefix =
+        storage.type === StorageType.Contract ? '\\<inherited contract\\>.' : ''
+    dotString += `} | { type: ${contractVariablePrefix}variable (bytes)`
 
-        // If storage covers a whole slot or is not at the start or end of a slot
-        dotString += `| ${dotVariable(storage, storageObject.name)} `
+    // For each slot
+    startingVariables.forEach((variable) => {
+        // Get all the storage variables in this slot
+        const slotVariables = storage.variables.filter(
+            (s) => s.fromSlot === variable.fromSlot
+        )
+        const usedBytes = slotVariables.reduce((acc, s) => acc + s.byteSize, 0)
+        if (usedBytes < 32) {
+            slotVariables.push({
+                id: 0,
+                fromSlot: variable.fromSlot,
+                toSlot: variable.fromSlot,
+                byteSize: 32 - usedBytes,
+                byteOffset: usedBytes,
+                type: 'unallocated',
+                contractName: variable.contractName,
+                variable: '',
+                values: [],
+            })
+        }
+        const slotVariablesReversed = slotVariables.reverse()
+
+        // For each variable in the slot
+        slotVariablesReversed.forEach((variable, i) => {
+            if (i === 0) {
+                dotString += ` | { ${dotVariable(variable, storage.name)} `
+            } else {
+                dotString += ` | ${dotVariable(variable, storage.name)} `
+            }
+        })
+        dotString += '}'
     })
 
     // Need to close off the last label
@@ -102,10 +109,13 @@ export function convertStorageObject2Dot(
     return dotString
 }
 
-const dotVariable = (storage: Storage, contractName: string): string => {
-    const port = storage.structObjectId !== undefined ? `<${storage.id}>` : ''
+const dotVariable = (storage: Variable, contractName: string): string => {
+    const port = storage.structStorageId !== undefined ? `<${storage.id}>` : ''
     const contractNamePrefix =
         storage.contractName !== contractName ? `${storage.contractName}.` : ''
 
-    return `${port} ${storage.type}: ${contractNamePrefix}${storage.variable} (${storage.byteSize})`
+    const variable = storage.variable
+        ? `: ${contractNamePrefix}${storage.variable}`
+        : ''
+    return `${port} ${storage.type}${variable} (${storage.byteSize})`
 }

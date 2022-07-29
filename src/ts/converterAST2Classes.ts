@@ -118,7 +118,10 @@ export function convertAST2UmlClasses(
                     }
                 } else {
                     // this has come from Etherscan
-                    const importPath = path.join(codeFolder, childNode.path)
+                    const importPath =
+                        childNode.path[0] === '@'
+                            ? childNode.path
+                            : path.join(codeFolder, childNode.path)
                     imports.push({
                         absolutePath: importPath,
                         classNames: childNode.symbolAliases

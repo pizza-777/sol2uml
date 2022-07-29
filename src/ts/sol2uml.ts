@@ -5,8 +5,11 @@ import { parserUmlClasses } from './parserGeneral'
 import { EtherscanParser } from './parserEtherscan'
 import { classesConnectedToBaseContracts } from './filterClasses'
 import { Command, Option } from 'commander'
-import { convertClasses2StorageObjects } from './converterClasses2Storage'
-import { convertStorage2Dot } from './converterStorage2Dot'
+import {
+    addStorageValues,
+    convertClasses2Storages,
+} from './converterClasses2Storage'
+import { convertStorages2Dot } from './converterStorage2Dot'
 import { isAddress } from './utils/regEx'
 import { writeOutputFiles, writeSolidity } from './writerFiles'
 const program = new Command()
@@ -125,7 +128,7 @@ If an Ethereum address with a 0x prefix is passed, the verified source code from
                 ...options,
             }
 
-            const { umlClasses } = await parserUmlClasses(
+            const { umlClasses, contractName } = await parserUmlClasses(
                 fileFolderAddress,
                 combinedOptions
             )
@@ -149,6 +152,7 @@ If an Ethereum address with a 0x prefix is passed, the verified source code from
             await writeOutputFiles(
                 dotString,
                 fileFolderAddress,
+                contractName,
                 combinedOptions.outputFormat,
                 combinedOptions.outputFileName
             )
@@ -169,10 +173,31 @@ program
         'file name, base folder or contract address'
     )
     .option(
-        '-c, --contractName <value>',
-        'Contract name in local Solidity files. Not needed when using an address as the first argument.'
+        '-c, --contract <name>',
+        'Contract name in local Solidity files. Not needed when using an address as the first argument as the contract name can be derived from Etherscan.'
     )
-    // .option('-d, --data', 'gets the data in the storage slots')
+    .option(
+        '-d, --data',
+        'Gets the values in the storage slots from an Ethereum node.',
+        false
+    )
+    .option(
+        '-s, --storage <address>',
+        'The address of the contract with the storage values. This will be different from the contract with the code if a proxy contract is used. This is not needed if `fileFolderAddress` is an address and the contract is not proxied.'
+    )
+    .addOption(
+        new Option(
+            '-u, --url <url>',
+            'URL of the Ethereum node to get storage values if the `data` option is used.'
+        )
+            .env('NODE_URL')
+            .default('http://localhost:8545')
+    )
+    .option(
+        '-bn, --block <number>',
+        'Block number to get the contract storage values from.',
+        'latest'
+    )
     .action(async (fileFolderAddress, options, command) => {
         try {
             const combinedOptions = {
@@ -185,18 +210,46 @@ program
                 combinedOptions
             )
 
-            contractName = combinedOptions.contractName || contractName
-            const storageObjects = convertClasses2StorageObjects(
-                contractName,
-                umlClasses
-            )
-            if (isAddress(fileFolderAddress)) {
-                // The first object is the contract
-                storageObjects[0].address = fileFolderAddress
-            }
-            debug(storageObjects)
+            contractName = combinedOptions.contract || contractName
+            const storages = convertClasses2Storages(contractName, umlClasses)
 
-            const dotString = convertStorage2Dot(storageObjects)
+            if (isAddress(fileFolderAddress)) {
+                // The first storage is the contract
+                storages[0].address = fileFolderAddress
+            }
+            debug(storages)
+
+            if (combinedOptions.data) {
+                let storageAddress = combinedOptions.storage
+                if (storageAddress) {
+                    if (!isAddress(storageAddress)) {
+                        throw Error(
+                            `Invalid address to get storage data from "${storageAddress}"`
+                        )
+                    }
+                } else {
+                    if (!isAddress(fileFolderAddress)) {
+                        throw Error(
+                            `Can not get storage slot values if first param is not an address and the \`address\` option is not used.`
+                        )
+                    }
+                    storageAddress = fileFolderAddress
+                }
+
+                const storage = storages.find((so) => so.name === contractName)
+                if (!storageAddress)
+                    throw Error(
+                        `Could not find the "${contractName}" contract in list of parsed storages`
+                    )
+                await addStorageValues(
+                    combinedOptions.url,
+                    storageAddress,
+                    storage,
+                    combinedOptions.blockNumber
+                )
+            }
+
+            const dotString = convertStorages2Dot(storages)
 
             await writeOutputFiles(
                 dotString,

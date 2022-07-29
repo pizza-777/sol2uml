@@ -1,12 +1,13 @@
 import { Attribute, AttributeType, ClassStereotype, UmlClass } from './umlClass'
 import { findAssociatedClass } from './associations'
+import { getStorageValues } from './slotValues'
 
 export enum StorageType {
     Contract,
     Struct,
 }
 
-export interface Storage {
+export interface Variable {
     id: number
     fromSlot: number
     toSlot: number
@@ -15,26 +16,46 @@ export interface Storage {
     type: string
     variable: string
     contractName?: string
-    value?: string
-    structObjectId?: number
+    values: string[]
+    structStorageId?: number
     enumId?: number
 }
 
-export interface StorageObject {
+export interface Storage {
     id: number
     name: string
     address?: string
     type: StorageType
-    storages: Storage[]
+    variables: Variable[]
 }
 
-let storageObjectId = 1
 let storageId = 1
+let variableId = 1
 
-export const convertClasses2StorageObjects = (
+/**
+ *
+ * @param url
+ * @param contractAddress Contract address to get the storage slot values from
+ * @param storage is mutated with the storage values
+ */
+export const addStorageValues = async (
+    url: string,
+    contractAddress: string,
+    storage: Storage,
+    blockTag: string
+) => {
+    const slots = storage.variables.map((s) => s.fromSlot)
+
+    const values = await getStorageValues(url, contractAddress, slots, blockTag)
+    storage.variables.forEach((storage, i) => {
+        storage.values = [values[i]]
+    })
+}
+
+export const convertClasses2Storages = (
     contractName: string,
     umlClasses: UmlClass[]
-): StorageObject[] => {
+): Storage[] => {
     // Find the base UML Class from the base contract name
     const umlClass = umlClasses.find(({ name }) => {
         return name === contractName
@@ -43,33 +64,33 @@ export const convertClasses2StorageObjects = (
         throw Error(`Failed to find contract with name "${contractName}"`)
     }
 
-    const storageObjects: StorageObject[] = []
-    const storages = parseStorage(umlClass, umlClasses, [], storageObjects, [])
+    const storages: Storage[] = []
+    const variables = parseVariables(umlClass, umlClasses, [], storages, [])
 
-    storageObjects.unshift({
-        id: storageObjectId++,
+    storages.unshift({
+        id: storageId++,
         name: contractName,
         type: StorageType.Contract,
-        storages,
+        variables: variables,
     })
 
-    return storageObjects
+    return storages
 }
 
 /**
- * Recursively parses the storage for a given contract.
+ * Recursively parses the storage variables for a given contract.
  * @param umlClass contract or file level struct
  * @param umlClasses other contracts, structs and enums that may be a type of a storage variable.
- * @param storages mutable array of storage slots that is appended to
- * @param storageObjects mutable array of StorageObjects that is appended with structs
+ * @param variables mutable array of storage slots that is appended to
+ * @param storages mutable array of storages that is appended with structs
  */
-const parseStorage = (
+const parseVariables = (
     umlClass: UmlClass,
     umlClasses: UmlClass[],
+    variables: Variable[],
     storages: Storage[],
-    storageObjects: StorageObject[],
     inheritedContracts: string[]
-) => {
+): Variable[] => {
     // Add storage slots from inherited contracts first.
     // Get immediate parent contracts that the class inherits from
     const parentContracts = umlClass.getParentContracts()
@@ -90,11 +111,11 @@ const parseStorage = (
                 `Failed to find parent contract ${parent.targetUmlClassName} of ${umlClass.absolutePath}`
             )
         // recursively parse inherited contract
-        parseStorage(
+        parseVariables(
             parentClass,
             umlClasses,
+            variables,
             storages,
-            storageObjects,
             inheritedContracts
         )
     })
@@ -107,25 +128,21 @@ const parseStorage = (
         const byteSize = calcStorageByteSize(attribute, umlClass, umlClasses)
 
         // find any dependent structs
-        const linkedStruct = parseStructStorageObject(
-            attribute,
-            umlClasses,
-            storageObjects
-        )
-        const structObjectId = linkedStruct?.id
+        const linkedStruct = parseStructStorage(attribute, umlClasses, storages)
+        const structStorageId = linkedStruct?.id
 
         // Get the toSlot of the last storage item
         let lastToSlot = 0
         let nextOffset = 0
-        if (storages.length > 0) {
-            const lastStorage = storages[storages.length - 1]
+        if (variables.length > 0) {
+            const lastStorage = variables[variables.length - 1]
             lastToSlot = lastStorage.toSlot
             nextOffset = lastStorage.byteOffset + lastStorage.byteSize
         }
         if (nextOffset + byteSize > 32) {
-            const nextFromSlot = storages.length > 0 ? lastToSlot + 1 : 0
-            storages.push({
-                id: storageId++,
+            const nextFromSlot = variables.length > 0 ? lastToSlot + 1 : 0
+            variables.push({
+                id: variableId++,
                 fromSlot: nextFromSlot,
                 toSlot: nextFromSlot + Math.floor((byteSize - 1) / 32),
                 byteSize,
@@ -133,11 +150,12 @@ const parseStorage = (
                 type: attribute.type,
                 variable: attribute.name,
                 contractName: umlClass.name,
-                structObjectId,
+                structStorageId,
+                values: [],
             })
         } else {
-            storages.push({
-                id: storageId++,
+            variables.push({
+                id: variableId++,
                 fromSlot: lastToSlot,
                 toSlot: lastToSlot,
                 byteSize,
@@ -145,26 +163,27 @@ const parseStorage = (
                 type: attribute.type,
                 variable: attribute.name,
                 contractName: umlClass.name,
-                structObjectId,
+                structStorageId,
+                values: [],
             })
         }
     })
 
-    return storages
+    return variables
 }
 
-export const parseStructStorageObject = (
+export const parseStructStorage = (
     attribute: Attribute,
     otherClasses: UmlClass[],
-    storageObjects: StorageObject[]
-): StorageObject | undefined => {
+    storages: Storage[]
+): Storage | undefined => {
     if (attribute.attributeType === AttributeType.UserDefined) {
-        // Have we already created the storageObject?
-        const existingStorageObject = storageObjects.find(
+        // Have we already created the storage?
+        const existingStorage = storages.find(
             (dep) => dep.name === attribute.type
         )
-        if (existingStorageObject) {
-            return existingStorageObject
+        if (existingStorage) {
+            return existingStorage
         }
         // Is the user defined type linked to another Contract, Struct or Enum?
         const dependentClass = otherClasses.find(({ name }) => {
@@ -177,22 +196,22 @@ export const parseStructStorageObject = (
         }
 
         if (dependentClass.stereotype === ClassStereotype.Struct) {
-            const storages = parseStorage(
+            const variables = parseVariables(
                 dependentClass,
                 otherClasses,
                 [],
-                storageObjects,
+                storages,
                 []
             )
-            const newStorageObject = {
-                id: storageObjectId++,
+            const newStorage = {
+                id: storageId++,
                 name: attribute.type,
                 type: StorageType.Struct,
-                storages,
+                variables,
             }
-            storageObjects.push(newStorageObject)
+            storages.push(newStorage)
 
-            return newStorageObject
+            return newStorage
         }
         return undefined
     }
@@ -208,13 +227,13 @@ export const parseStructStorageObject = (
                 ? attribute.type.match(/=\\>((?!mapping)\w*)[\\[]/)
                 : attribute.type.match(/(\w+)\[/)
         if (result !== null && result[1] && !isElementary(result[1])) {
-            // Have we already created the storageObject?
-            const existingStorageObject = storageObjects.find(
+            // Have we already created the storage?
+            const existingStorage = storages.find(
                 ({ name }) =>
                     name === result[1] || name === result[1].split('.')[1]
             )
-            if (existingStorageObject) {
-                return existingStorageObject
+            if (existingStorage) {
+                return existingStorage
             }
 
             // Find UserDefined type
@@ -228,22 +247,22 @@ export const parseStructStorageObject = (
                 )
             }
             if (typeClass.stereotype === ClassStereotype.Struct) {
-                const storages = parseStorage(
+                const variables = parseVariables(
                     typeClass,
                     otherClasses,
                     [],
-                    storageObjects,
+                    storages,
                     []
                 )
-                const newStorageObject = {
-                    id: storageObjectId++,
+                const newStorage = {
+                    id: storageId++,
                     name: typeClass.name,
                     type: StorageType.Struct,
-                    storages,
+                    variables,
                 }
-                storageObjects.push(newStorageObject)
+                storages.push(newStorage)
 
-                return newStorageObject
+                return newStorage
             }
         }
         return undefined
