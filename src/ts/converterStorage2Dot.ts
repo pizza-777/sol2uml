@@ -5,7 +5,6 @@ const debug = require('debug')('sol2uml')
 export const convertStorage2Dot = (storageObjects: StorageObject[]): string => {
     let dotString: string = `
 digraph StorageDiagram {
-rankdir=LR
 color=black
 arrowhead=open
 node [shape=record, style=filled, fillcolor=gray95]`
@@ -40,9 +39,9 @@ export function convertStorageObject2Dot(
         storageObject.type === StorageType.Struct ? 'Struct' : 'Contract'
 
     // write object header with name and optional address
-    dotString += `\n${storageObject.id} [label="{\\<\\<${steorotype}\\>\\>\\n${
+    dotString += `\n${storageObject.id} [label="{${
         storageObject.name
-    }\\n${storageObject.address || ''} | `
+    } \\<\\<${steorotype}\\>\\>\\n${storageObject.address || ''} | {`
 
     // write slot numbers
     storageObject.storages.forEach((storage, i) => {
@@ -113,7 +112,7 @@ export function convertStorageObject2Dot(
     })
 
     // Need to close off the last label
-    dotString += '}}"]\n'
+    dotString += '}}}"]\n'
 
     return dotString
 }
