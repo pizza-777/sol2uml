@@ -128,7 +128,7 @@ If an Ethereum address with a 0x prefix is passed, the verified source code from
                 ...options,
             }
 
-            const { umlClasses } = await parserUmlClasses(
+            const { umlClasses, contractName } = await parserUmlClasses(
                 fileFolderAddress,
                 combinedOptions
             )
@@ -152,6 +152,7 @@ If an Ethereum address with a 0x prefix is passed, the verified source code from
             await writeOutputFiles(
                 dotString,
                 fileFolderAddress,
+                contractName,
                 combinedOptions.outputFormat,
                 combinedOptions.outputFileName
             )
