@@ -47,7 +47,11 @@ export const getStorageValues = async (
             id: (jsonRpcId++).toString(),
             jsonrpc: '2.0',
             method: 'eth_getStorageAt',
-            params: [contractAddress, slot.toString(), block.toString()],
+            params: [
+                contractAddress,
+                BigNumber.from(slot).toHexString(),
+                block,
+            ],
         }))
         const response = await axios.post(url, payload)
         console.log(response.data)

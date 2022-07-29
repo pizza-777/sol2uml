@@ -1,4 +1,5 @@
 import { getStorageValue, getStorageValues } from '../slotValues'
+import { BigNumber } from 'ethers'
 
 const emissionController = '0xBa69e6FC7Df49a3b75b565068Fb91ff2d9d91780'
 const usdc = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
@@ -17,7 +18,12 @@ describe('Slot Values', () => {
     })
     test('Emissions controller first slot on deployment', async () => {
         expect(
-            await getStorageValue(url, emissionController, 1, 13761579)
+            await getStorageValue(
+                url,
+                emissionController,
+                BigNumber.from(1),
+                13761579
+            )
         ).toEqual(
             '0x00000000000000000000000000000000000000000000000000000a9600000a96'
         )

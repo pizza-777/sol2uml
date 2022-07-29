@@ -7,9 +7,9 @@ import { classesConnectedToBaseContracts } from './filterClasses'
 import { Command, Option } from 'commander'
 import {
     addStorageValues,
-    convertClasses2StorageObjects,
+    convertClasses2Storages,
 } from './converterClasses2Storage'
-import { convertStorage2Dot } from './converterStorage2Dot'
+import { convertStorages2Dot } from './converterStorage2Dot'
 import { isAddress } from './utils/regEx'
 import { writeOutputFiles, writeSolidity } from './writerFiles'
 const program = new Command()
@@ -210,15 +210,13 @@ program
             )
 
             contractName = combinedOptions.contract || contractName
-            const storageObjects = convertClasses2StorageObjects(
-                contractName,
-                umlClasses
-            )
+            const storages = convertClasses2Storages(contractName, umlClasses)
+
             if (isAddress(fileFolderAddress)) {
-                // The first object is the contract
-                storageObjects[0].address = fileFolderAddress
+                // The first storage is the contract
+                storages[0].address = fileFolderAddress
             }
-            debug(storageObjects)
+            debug(storages)
 
             if (combinedOptions.data) {
                 let storageAddress = combinedOptions.storage
@@ -237,22 +235,20 @@ program
                     storageAddress = fileFolderAddress
                 }
 
-                const storageObject = storageObjects.find(
-                    (so) => so.name === contractName
-                )
+                const storage = storages.find((so) => so.name === contractName)
                 if (!storageAddress)
                     throw Error(
-                        `Could not find "${contractName}" contract in list of parsed storage objects`
+                        `Could not find the "${contractName}" contract in list of parsed storages`
                     )
                 await addStorageValues(
                     combinedOptions.url,
                     storageAddress,
-                    storageObject,
+                    storage,
                     combinedOptions.blockNumber
                 )
             }
 
-            const dotString = convertStorage2Dot(storageObjects)
+            const dotString = convertStorages2Dot(storages)
 
             await writeOutputFiles(
                 dotString,

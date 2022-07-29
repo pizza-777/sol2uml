@@ -1,6 +1,6 @@
 # Example Storage Diagrams
 
-## mStable MTA Staking V2
+## mStable Staking contract for MTA/ETH 80/20 Balancer Pool Token (BPT)
 
 Any struct used in storage is shown displaying their slot configurations. These structs can be a type of a storage variable or using in a mapping or array.
 
@@ -17,7 +17,7 @@ sol2uml storage 0xc63a48d85CCE7C3bD4d18db9c0972a4D223e4193 -f png -o examples/st
 The mStable Emissions Controller is deployed on mainnet to [0xBa69e6FC7Df49a3b75b565068Fb91ff2d9d91780](https://etherscan.io/address/0xBa69e6FC7Df49a3b75b565068Fb91ff2d9d91780).
 This is a proxy contract so to visualise the storage layout sol2uml needs to be run against the proxy implementation [0xebfd9cD78510c591eDa8735D0F8a87414eF27A83](https://etherscan.io/address/0xebfd9cd78510c591eda8735d0f8a87414ef27a83).
 
-![Emissions Controller](./0xebfd9cD78510c591eDa8735D0F8a87414eF27A83.png)
+![Emissions Controller](./EmissionsController.png)
 
 ```
 sol2uml storage 0xebfd9cD78510c591eDa8735D0F8a87414eF27A83 -o ./examples/storage/ -f png
