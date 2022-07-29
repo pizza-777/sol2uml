@@ -57,6 +57,22 @@ export function convertStorageObject2Dot(
         }
     })
 
+    // write slot values
+    if (storageObject.storages.length > 0 && storageObject.storages[0].value) {
+        storageObject.storages.forEach((storage, i) => {
+            if (!storage.value) return
+            if (i === 0) {
+                dotString += `} | {value | ${storage.value}`
+            } else if (storage.byteOffset === 0) {
+                if (storage.fromSlot === storage.toSlot) {
+                    dotString += ` | ${storage.value}`
+                } else {
+                    dotString += `\n${storage.value}`
+                }
+            }
+        })
+    }
+
     // write storage types
     storageObject.storages.forEach((storage, i) => {
         const lastStorage = i > 0 ? storageObject.storages[i - 1] : undefined

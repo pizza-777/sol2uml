@@ -14,15 +14,6 @@ export const writeOutputFiles = async (
     outputFormat: OutputFormats = 'svg',
     outputFilename?: string
 ): Promise<void> => {
-    if (outputFormat === 'dot' || outputFormat === 'all') {
-        writeDot(dot, outputFilename)
-
-        // No need to continue if only generating a dot file
-        if (outputFormat === 'dot') {
-            return
-        }
-    }
-
     // If all output then extension is svg
     const outputExt = outputFormat === 'all' ? 'svg' : outputFormat
 
@@ -40,6 +31,15 @@ export const writeOutputFiles = async (
                     outputExt
             }
         } catch (err) {} // we can ignore errors as it just means outputFilename does not exist yet
+    }
+
+    if (outputFormat === 'dot' || outputFormat === 'all') {
+        writeDot(dot, outputFilename)
+
+        // No need to continue if only generating a dot file
+        if (outputFormat === 'dot') {
+            return
+        }
     }
 
     const svg = convertDot2Svg(dot)
@@ -81,18 +81,16 @@ export function writeSolidity(code: string, filename = 'solidity') {
     })
 }
 
-export function writeDot(dot: string, filename = 'classDiagram.dot') {
-    const extension = path.extname(filename)
-    const outputFile = extension === '.dot' ? filename : filename + '.dot'
-    debug(`About to write Dot file to ${outputFile}`)
+export function writeDot(dot: string, filename: string) {
+    debug(`About to write Dot file to ${filename}`)
 
-    writeFile(outputFile, dot, (err) => {
+    writeFile(filename, dot, (err) => {
         if (err) {
-            throw new Error(`Failed to write Dot file to ${outputFile}`, {
+            throw new Error(`Failed to write Dot file to ${filename}`, {
                 cause: err,
             })
         } else {
-            console.log(`Dot file written to ${outputFile}`)
+            console.log(`Dot file written to ${filename}`)
         }
     })
 }

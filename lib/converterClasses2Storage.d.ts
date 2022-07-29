@@ -23,6 +23,13 @@ export interface StorageObject {
     type: StorageType;
     storages: Storage[];
 }
+/**
+ *
+ * @param url
+ * @param storageContract Contract address to get the storage slot values from
+ * @param storageObject is mutated with the storage values
+ */
+export declare const addStorageValues: (url: string, contractAddress: string, storageObject: StorageObject, blockTag: string) => Promise<void>;
 export declare const convertClasses2StorageObjects: (contractName: string, umlClasses: UmlClass[]) => StorageObject[];
 export declare const parseStructStorageObject: (attribute: Attribute, otherClasses: UmlClass[], storageObjects: StorageObject[]) => StorageObject | undefined;
 export declare const calcStorageByteSize: (attribute: Attribute, umlClass: UmlClass, otherClasses: UmlClass[]) => number;

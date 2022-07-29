@@ -1,5 +1,6 @@
 import { Attribute, AttributeType, ClassStereotype, UmlClass } from './umlClass'
 import { findAssociatedClass } from './associations'
+import { getStorageValues } from './slotValues'
 
 export enum StorageType {
     Contract,
@@ -30,6 +31,26 @@ export interface StorageObject {
 
 let storageObjectId = 1
 let storageId = 1
+
+/**
+ *
+ * @param url
+ * @param storageContract Contract address to get the storage slot values from
+ * @param storageObject is mutated with the storage values
+ */
+export const addStorageValues = async (
+    url: string,
+    contractAddress: string,
+    storageObject: StorageObject,
+    blockTag: string
+) => {
+    const slots = storageObject.storages.map((s) => s.fromSlot)
+
+    const values = await getStorageValues(url, contractAddress, slots, blockTag)
+    storageObject.storages.forEach((storage, i) => {
+        storage.value = values[i]
+    })
+}
 
 export const convertClasses2StorageObjects = (
     contractName: string,

@@ -111,6 +111,7 @@ contract TestStorage is Parent, Parent2 {
     IERC20[2] tokenPair;
     IERC20[12] dozenTokens;
     address[N_COINS] coins;
+    address[N_COINS][3][N_COINS] multiDimension;
     uint256[MAX_COINS] maxCoins;
     IERC20[N_COINS] tokens;
     address[2 * N_COINS] doubleTokens;
