@@ -2,17 +2,19 @@
 
 [![npm version](https://badge.fury.io/js/sol2uml.svg)](https://badge.fury.io/js/sol2uml)
 
-[Unified Modeling Language (UML)](https://en.wikipedia.org/wiki/Unified_Modeling_Language) [class diagram](https://en.wikipedia.org/wiki/Class_diagram) generator for [Solidity](https://solidity.readthedocs.io/) contracts.
+A visualisation tool for [Solidity](https://solidity.readthedocs.io/) contracts featuring:
+1. [Unified Modeling Language (UML)](https://en.wikipedia.org/wiki/Unified_Modeling_Language) [class diagram](https://en.wikipedia.org/wiki/Class_diagram) generator for Solidity contracts.
+2. Contract storage layout diagrams.
 
-Open Zeppelin's ERC20 token contracts generated from [version 2.5.1](https://github.com/OpenZeppelin/openzeppelin-solidity/tree/v2.5.1/contracts/token/ERC20)
+UML class diagram of Open Zeppelin's ERC20 token contracts generated from [version 2.5.1](https://github.com/OpenZeppelin/openzeppelin-solidity/tree/v2.5.1/contracts/token/ERC20)
 ![Open Zeppelin ERC20](./examples/OpenZeppelinERC20.svg)
 
 See more contract diagrams [here](./examples/README.md).
 
-USDC storage slots from the [verified source code](https://etherscan.io/address/0xa2327a938febf5fec13bacfb16ae10ecbc4cbdcf#code) on Etherscan.
-![USDC](./examples/storage/usdc.png)
+Storage layout diagram of USDC's [verified source code](https://etherscan.io/address/0xa2327a938febf5fec13bacfb16ae10ecbc4cbdcf#code) on Etherscan.
+![USDC](./examples/storage/usdcData.png)
 
-See more storage slot diagrams [here](./examples/storage/README.md).
+See more contract storage diagram examples [here](./examples/storage/README.md).
 
 # Install
 

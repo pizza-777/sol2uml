@@ -1,15 +1,15 @@
 # Example UML Diagrams
 
-## Crypto Kitties
+## Bored Ape Yacht Club NFT
 
-![CryptoKitties](./cryptoKitties.svg)
+![Bored Ape Yacht Club NFT](./BoredApeYachtClub.svg)
 Generated from running
 
 ```
-sol2uml 0x06012c8cf97BEaD5deAe237070F9587f8E7A266d
+sol2uml 0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D
 ```
 
-This uses the verified Solidity code loaded to Etherscan https://etherscan.io/address/0x06012c8cf97BEaD5deAe237070F9587f8E7A266d#code
+This uses the verified Solidity code loaded to Etherscan https://etherscan.io/address/0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d#code
 
 ## Open Zeppelin ERC20 Tokens
 
