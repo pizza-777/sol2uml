@@ -159,7 +159,7 @@ If an Ethereum address with a 0x prefix is passed, the verified source code from
 
             debug(`Finished generating UML`)
         } catch (err) {
-            console.error(`Failed to generate UML diagram ${err}`)
+            console.error(`Failed to generate UML diagram\n${err.stack}`)
         }
     })
 
@@ -259,7 +259,7 @@ program
                 combinedOptions.outputFileName
             )
         } catch (err) {
-            console.error(`Failed to generate storage diagram ${err}`)
+            console.error(`Failed to generate storage diagram.\n${err.stack}`)
         }
     })
 
@@ -270,24 +270,29 @@ program
     )
     .argument('<contractAddress>', 'Contract address')
     .action(async (contractAddress, options, command) => {
-        debug(`About to flatten ${contractAddress}`)
+        try {
+            debug(`About to flatten ${contractAddress}`)
 
-        const combinedOptions = {
-            ...command.parent._optionValues,
-            ...options,
+            const combinedOptions = {
+                ...command.parent._optionValues,
+                ...options,
+            }
+
+            const etherscanParser = new EtherscanParser(
+                combinedOptions.apiKey,
+                combinedOptions.network
+            )
+
+            const { solidityCode, contractName } =
+                await etherscanParser.getSolidityCode(contractAddress)
+
+            // Write Solidity to the contract address
+            const outputFilename =
+                combinedOptions.outputFileName || contractName
+            await writeSolidity(solidityCode, outputFilename)
+        } catch (err) {
+            console.error(`Failed to flatten files.\n${err.stack}`)
         }
-
-        const etherscanParser = new EtherscanParser(
-            combinedOptions.apiKey,
-            combinedOptions.network
-        )
-
-        const { solidityCode, contractName } =
-            await etherscanParser.getSolidityCode(contractAddress)
-
-        // Write Solidity to the contract address
-        const outputFilename = combinedOptions.outputFileName || contractName
-        await writeSolidity(solidityCode, outputFilename)
     })
 
 program.on('option:verbose', () => {

@@ -85,7 +85,15 @@ export class EtherscanParser {
 
         let solidityCode = ''
         files.forEach((file) => {
-            solidityCode += file.code
+            // comment out any import statements
+            // match whitespace before import
+            // and characters after import up to ;
+            // replace all in file and match across multiple lines
+            const removedImports = file.code.replace(
+                /(\s)(import.*;)/gm,
+                '$1/* $2 */'
+            )
+            solidityCode += removedImports
         })
         return {
             solidityCode,
