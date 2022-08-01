@@ -22,8 +22,10 @@ describe('Parser', () => {
         })
 
         test('get Solidity files including Open Zeppelin', async () => {
-            const files = await getSolidityFilesFromFolderOrFile('.')
-            expect(files).toHaveLength(108)
+            const files = await getSolidityFilesFromFolderOrFile(
+                './src/contracts'
+            )
+            expect(files).toHaveLength(24)
         }, 10000)
 
         describe('Failures', () => {
