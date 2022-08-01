@@ -1,7 +1,7 @@
 import { Attribute, UmlClass } from './umlClass';
 export declare enum StorageType {
-    Contract = 0,
-    Struct = 1
+    Contract = "Contract",
+    Struct = "Struct"
 }
 export interface Variable {
     id: number;
@@ -10,16 +10,19 @@ export interface Variable {
     byteSize: number;
     byteOffset: number;
     type: string;
+    dynamic: boolean;
     variable: string;
     contractName?: string;
-    values: string[];
-    structStorageId?: number;
+    noValue: boolean;
+    value?: string;
+    referenceStorageId?: number;
     enumId?: number;
 }
 export interface Storage {
     id: number;
     name: string;
     address?: string;
+    slotKey?: string;
     type: StorageType;
     variables: Variable[];
 }
@@ -31,6 +34,11 @@ export interface Storage {
  */
 export declare const addStorageValues: (url: string, contractAddress: string, storage: Storage, blockTag: string) => Promise<void>;
 export declare const convertClasses2Storages: (contractName: string, umlClasses: UmlClass[]) => Storage[];
-export declare const parseStructStorage: (attribute: Attribute, otherClasses: UmlClass[], storages: Storage[]) => Storage | undefined;
-export declare const calcStorageByteSize: (attribute: Attribute, umlClass: UmlClass, otherClasses: UmlClass[]) => number;
+export declare const parseReferenceStorage: (attribute: Attribute, otherClasses: UmlClass[], storages: Storage[]) => Storage | undefined;
+export declare const calcStorageByteSize: (attribute: Attribute, umlClass: UmlClass, otherClasses: UmlClass[]) => {
+    size: number;
+    dynamic: boolean;
+};
 export declare const isElementary: (type: string) => boolean;
+export declare const calcSlotKey: (variable: Variable) => string | undefined;
+export declare const shiftStorageSlots: (storage: Storage, slots: number) => void;

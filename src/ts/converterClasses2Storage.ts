@@ -1,10 +1,12 @@
 import { Attribute, AttributeType, ClassStereotype, UmlClass } from './umlClass'
 import { findAssociatedClass } from './associations'
 import { getStorageValues } from './slotValues'
+import { keccak256, toUtf8Bytes } from 'ethers/lib/utils'
+import { BigNumber } from 'ethers'
 
 export enum StorageType {
-    Contract,
-    Struct,
+    Contract = 'Contract',
+    Struct = 'Struct',
 }
 
 export interface Variable {
@@ -14,10 +16,12 @@ export interface Variable {
     byteSize: number
     byteOffset: number
     type: string
+    dynamic: boolean
     variable: string
     contractName?: string
-    values: string[]
-    structStorageId?: number
+    noValue: boolean
+    value?: string
+    referenceStorageId?: number
     enumId?: number
 }
 
@@ -25,6 +29,7 @@ export interface Storage {
     id: number
     name: string
     address?: string
+    slotKey?: string
     type: StorageType
     variables: Variable[]
 }
@@ -44,11 +49,12 @@ export const addStorageValues = async (
     storage: Storage,
     blockTag: string
 ) => {
-    const slots = storage.variables.map((s) => s.fromSlot)
+    const valueVariables = storage.variables.filter((s) => !s.noValue)
+    const slots = valueVariables.map((s) => s.fromSlot)
 
     const values = await getStorageValues(url, contractAddress, slots, blockTag)
-    storage.variables.forEach((storage, i) => {
-        storage.values = [values[i]]
+    valueVariables.forEach((storage, i) => {
+        storage.value = values[i]
     })
 }
 
@@ -125,11 +131,21 @@ const parseVariables = (
         // Ignore any attributes that are constants or immutable
         if (attribute.compiled) return
 
-        const byteSize = calcStorageByteSize(attribute, umlClass, umlClasses)
+        const { size: byteSize, dynamic } = calcStorageByteSize(
+            attribute,
+            umlClass,
+            umlClasses
+        )
+        const noValue =
+            attribute.attributeType === AttributeType.Mapping ||
+            (attribute.attributeType === AttributeType.Array && !dynamic)
 
-        // find any dependent structs
-        const linkedStruct = parseStructStorage(attribute, umlClasses, storages)
-        const structStorageId = linkedStruct?.id
+        // find any dependent storage locations
+        const referenceStorage = parseReferenceStorage(
+            attribute,
+            umlClasses,
+            storages
+        )
 
         // Get the toSlot of the last storage item
         let lastToSlot = 0
@@ -139,40 +155,51 @@ const parseVariables = (
             lastToSlot = lastStorage.toSlot
             nextOffset = lastStorage.byteOffset + lastStorage.byteSize
         }
+        let newVariable: Variable
         if (nextOffset + byteSize > 32) {
             const nextFromSlot = variables.length > 0 ? lastToSlot + 1 : 0
-            variables.push({
+            newVariable = {
                 id: variableId++,
                 fromSlot: nextFromSlot,
                 toSlot: nextFromSlot + Math.floor((byteSize - 1) / 32),
                 byteSize,
                 byteOffset: 0,
                 type: attribute.type,
+                dynamic,
+                noValue,
                 variable: attribute.name,
                 contractName: umlClass.name,
-                structStorageId,
-                values: [],
-            })
+                referenceStorageId: referenceStorage?.id,
+            }
         } else {
-            variables.push({
+            newVariable = {
                 id: variableId++,
                 fromSlot: lastToSlot,
                 toSlot: lastToSlot,
                 byteSize,
                 byteOffset: nextOffset,
                 type: attribute.type,
+                dynamic,
+                noValue,
                 variable: attribute.name,
                 contractName: umlClass.name,
-                structStorageId,
-                values: [],
-            })
+                referenceStorageId: referenceStorage?.id,
+            }
         }
+        if (referenceStorage) {
+            if (!newVariable.dynamic) {
+                shiftStorageSlots(referenceStorage, newVariable.fromSlot)
+            } else if (attribute.attributeType === AttributeType.Array) {
+                referenceStorage.slotKey = calcSlotKey(newVariable)
+            }
+        }
+        variables.push(newVariable)
     })
 
     return variables
 }
 
-export const parseStructStorage = (
+export const parseReferenceStorage = (
     attribute: Attribute,
     otherClasses: UmlClass[],
     storages: Storage[]
@@ -275,80 +302,104 @@ export const calcStorageByteSize = (
     attribute: Attribute,
     umlClass: UmlClass,
     otherClasses: UmlClass[]
-): number => {
+): { size: number; dynamic: boolean } => {
     if (
         attribute.attributeType === AttributeType.Mapping ||
         attribute.attributeType === AttributeType.Function
     ) {
-        return 32
+        return { size: 32, dynamic: true }
     }
     if (attribute.attributeType === AttributeType.Array) {
-        // All array dimensions must be fixed. eg [2][3][8].
-        const result = attribute.type.match(/(\w+)(\[([\w][\w]*)\])+$/)
+        // Fixed sized arrays are read from right to left until there is a dynamic dimension
+        // eg address[][3][2] is a fixed size array that uses 6 slots.
+        // while address [2][] is a dynamic sized array.
+        const arrayDimensions = attribute.type.match(/\[\w*]/g)
+        // Remove first [ and last ] from each arrayDimensions
+        const dimensionsStr = arrayDimensions.map((a) => a.slice(1, -1))
+        // fixed-sized arrays are read from right to left so reverse the dimensions
+        const dimensionsStrReversed = dimensionsStr.reverse()
 
-        // The above will not match any dynamic array dimensions, eg [],
-        // as there needs to be one or more [0-9]+ in the square brackets
-        if (result === null) {
-            // Any dynamic array dimension means the whole array is dynamic
-            // so only takes 32 bytes (1 slot)
-            return 32
+        // read fixed-size dimensions until we get a dynamic array with no dimension
+        let dimension = dimensionsStrReversed.shift()
+        const fixedDimensions: number[] = []
+        while (dimension && dimension !== '') {
+            const dimensionNum = parseInt(dimension)
+            if (!isNaN(dimensionNum)) {
+                fixedDimensions.push(dimensionNum)
+            } else {
+                // Try and size array dimension from declared constants
+                const constant = umlClass.constants.find(
+                    (constant) => constant.name === dimension
+                )
+                if (!constant) {
+                    throw Error(
+                        `Could not size fixed sized array with dimension "${dimension}"`
+                    )
+                }
+                fixedDimensions.push(constant.value)
+            }
+            // read the next dimension for the next loop
+            dimension = dimensionsStrReversed.shift()
         }
 
-        // All array dimensions are fixes so we now need to multiply all the dimensions
-        // to get a total number of array elements
-        const arrayDimensions = attribute.type.match(/\[\w+/g)
-        const dimensionsStr = arrayDimensions.map((d) => d.slice(1))
-        const dimensions: number[] = dimensionsStr.map((dimension) => {
-            const dimensionNum = parseInt(dimension)
-            if (!isNaN(dimensionNum)) return dimensionNum
-
-            // Try and size array dimension from declared constants
-            const constant = umlClass.constants.find(
-                (constant) => constant.name === dimension
-            )
-            if (constant) {
-                return constant.value
-            }
-            throw Error(
-                `Could not size fixed sized array with dimension "${dimension}"`
-            )
-        })
+        // If the first dimension is dynamic, ie []
+        if (fixedDimensions.length === 0) {
+            // dynamic arrays start at the keccak256 of the slot number
+            // the array length is stored in the 32 byte slot
+            return { size: 32, dynamic: true }
+        }
 
         let elementSize: number
+        const type = attribute.type.substring(0, attribute.type.indexOf('['))
         // If a fixed sized array
-        if (isElementary(result[1])) {
+        if (isElementary(type)) {
             const elementAttribute: Attribute = {
                 attributeType: AttributeType.Elementary,
-                type: result[1],
+                type,
                 name: 'element',
             }
-            elementSize = calcStorageByteSize(
+            ;({ size: elementSize } = calcStorageByteSize(
                 elementAttribute,
                 umlClass,
                 otherClasses
-            )
+            ))
         } else {
             const elementAttribute: Attribute = {
                 attributeType: AttributeType.UserDefined,
-                type: result[1],
+                type,
                 name: 'userDefined',
             }
-            elementSize = calcStorageByteSize(
+            ;({ size: elementSize } = calcStorageByteSize(
                 elementAttribute,
                 umlClass,
                 otherClasses
-            )
+            ))
         }
         // Anything over 16 bytes, like an address, will take a whole 32 byte slot
         if (elementSize > 16 && elementSize < 32) {
             elementSize = 32
         }
-        const firstDimensionBytes = elementSize * dimensions[0]
-        const firstDimensionSlotBytes = Math.ceil(firstDimensionBytes / 32) * 32
-        const remainingElements = dimensions
-            .slice(1)
+        // If multi dimension, then the first element is 32 bytes
+        if (fixedDimensions.length < arrayDimensions.length) {
+            const totalDimensions = fixedDimensions.reduce(
+                (total, dimension) => total * dimension,
+                1
+            )
+            return {
+                size: 32 * totalDimensions,
+                dynamic: false,
+            }
+        }
+        const lastItem = fixedDimensions.length - 1
+        const lastDimensionBytes = elementSize * fixedDimensions[lastItem]
+        const lastDimensionSlotBytes = Math.ceil(lastDimensionBytes / 32) * 32
+        const remainingDimensions = fixedDimensions
+            .slice(0, lastItem)
             .reduce((total, dimension) => total * dimension, 1)
-        return firstDimensionSlotBytes * remainingElements
+        return {
+            size: lastDimensionSlotBytes * remainingDimensions,
+            dynamic: false,
+        }
     }
     // If a Struct or Enum
     if (attribute.attributeType === AttributeType.UserDefined) {
@@ -366,12 +417,12 @@ export const calcStorageByteSize = (
 
         switch (attributeClass.stereotype) {
             case ClassStereotype.Enum:
-                return 1
+                return { size: 1, dynamic: false }
             case ClassStereotype.Contract:
             case ClassStereotype.Abstract:
             case ClassStereotype.Interface:
             case ClassStereotype.Library:
-                return 20
+                return { size: 20, dynamic: false }
             case ClassStereotype.Struct:
                 let structByteSize = 0
                 attributeClass.attributes.forEach((structAttribute) => {
@@ -406,7 +457,7 @@ export const calcStorageByteSize = (
                             structByteSize = Math.ceil(structByteSize / 32) * 32
                         }
                     }
-                    const attributeSize = calcStorageByteSize(
+                    const { size: attributeSize } = calcStorageByteSize(
                         structAttribute,
                         umlClass,
                         otherClasses
@@ -421,25 +472,28 @@ export const calcStorageByteSize = (
                     }
                 })
                 // structs take whole 32 byte slots so round up to the nearest 32 sized slots
-                return Math.ceil(structByteSize / 32) * 32
+                return {
+                    size: Math.ceil(structByteSize / 32) * 32,
+                    dynamic: false,
+                }
             default:
-                return 32
+                return { size: 32, dynamic: false }
         }
     }
 
     if (attribute.attributeType === AttributeType.Elementary) {
         switch (attribute.type) {
             case 'bool':
-                return 1
+                return { size: 1, dynamic: false }
             case 'address':
-                return 20
+                return { size: 20, dynamic: false }
             case 'string':
             case 'bytes':
             case 'uint':
             case 'int':
             case 'ufixed':
             case 'fixed':
-                return 32
+                return { size: 32, dynamic: false }
             default:
                 const result = attribute.type.match(
                     /[u]*(int|fixed|bytes)([0-9]+)/
@@ -451,13 +505,13 @@ export const calcStorageByteSize = (
                 }
                 // If bytes
                 if (result[1] === 'bytes') {
-                    return parseInt(result[2])
+                    return { size: parseInt(result[2]), dynamic: false }
                 }
                 // TODO need to handle fixed types when they are supported
 
                 // If an int
                 const bitSize = parseInt(result[2])
-                return bitSize / 8
+                return { size: bitSize / 8, dynamic: false }
         }
     }
     throw new Error(
@@ -480,4 +534,20 @@ export const isElementary = (type: string): boolean => {
             const result = type.match(/[u]*(int|fixed|bytes)([0-9]+)/)
             return result !== null
     }
+}
+
+export const calcSlotKey = (variable: Variable): string | undefined => {
+    if (variable.dynamic) {
+        return keccak256(
+            toUtf8Bytes(BigNumber.from(variable.fromSlot).toHexString())
+        )
+    }
+    return BigNumber.from(variable.fromSlot).toHexString()
+}
+
+export const shiftStorageSlots = (storage: Storage, slots: number) => {
+    storage.variables.forEach((v) => {
+        v.fromSlot += slots
+        v.toSlot += slots
+    })
 }

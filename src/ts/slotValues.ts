@@ -67,7 +67,9 @@ export const getStorageValues = async (
         const sortedResponses = responseData.sort((a, b) =>
             BigNumber.from(a.id).gt(b.id) ? 1 : -1
         )
-        return sortedResponses.map((data) => data.result)
+        return sortedResponses.map(
+            (data) => '0x' + data.result.toUpperCase().slice(2)
+        )
     } catch (err) {
         throw new Error(
             `Failed to get ${slots.length} storage values for ${contractAddress} from ${url}`,

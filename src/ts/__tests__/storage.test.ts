@@ -6,6 +6,7 @@ import {
     UmlClass,
 } from '../umlClass'
 import { calcStorageByteSize, isElementary } from '../converterClasses2Storage'
+import { formatBytes32String, parseBytes32String } from 'ethers/lib/utils'
 
 describe('storage parser', () => {
     describe('calc storage bytes size of', () => {
@@ -20,6 +21,25 @@ describe('storage parser', () => {
                 },
             ],
         }
+        const otherClasses: UmlClass[] = [
+            new UmlClass({
+                ...defaultClassProperties,
+                stereotype: ClassStereotype.Struct,
+                name: 'TwoSlots',
+                attributes: [
+                    {
+                        name: 'param1',
+                        type: 'uint256',
+                        attributeType: AttributeType.Elementary,
+                    },
+                    {
+                        name: 'param2',
+                        type: 'address',
+                        attributeType: AttributeType.Elementary,
+                    },
+                ],
+            }),
+        ]
         test.each`
             type         | expected
             ${'address'} | ${20}
@@ -44,45 +64,78 @@ describe('storage parser', () => {
                 type,
                 name: 'varName',
             }
-            expect(calcStorageByteSize(attribute, umlClass, [])).toEqual(
-                expected
-            )
+            const { size } = calcStorageByteSize(attribute, umlClass, [])
+            expect(size).toEqual(expected)
         })
 
         // TODO implement support for sizing expressions. eg
         // ${'address[N_COINS * 2]'}      | ${128}
-        test.each`
+        test.only.each`
             type                           | expected
-            ${'address[N_COINS]'}          | ${64}
-            ${'address[N_COINS][N_COINS]'} | ${128}
-            ${'uint8[33][2][2]'}           | ${256}
             ${'address[]'}                 | ${32}
             ${'address[1]'}                | ${32}
             ${'address[2]'}                | ${64}
             ${'address[4]'}                | ${128}
-            ${'address[][2]'}              | ${32}
             ${'address[2][2]'}             | ${128}
             ${'address[32]'}               | ${1024}
+            ${'address[][2]'}              | ${64}
+            ${'address[2][]'}              | ${32}
+            ${'address[][10]'}             | ${320}
+            ${'address[][][2]'}            | ${64}
+            ${'address[][4][3]'}           | ${384}
+            ${'address[][3][][2]'}         | ${64}
+            ${'address[3][2][]'}           | ${32}
+            ${'address[][2][2][2]'}        | ${256}
+            ${'address[][2][]'}            | ${32}
+            ${'address[N_COINS]'}          | ${64}
+            ${'address[N_COINS][N_COINS]'} | ${128}
+            ${'uint8[33][2][2]'}           | ${256}
             ${'bytes32[]'}                 | ${32}
             ${'bytes1[1]'}                 | ${32}
             ${'bytes1[2]'}                 | ${32}
+            ${'bytes1[16]'}                | ${32}
+            ${'bytes1[17]'}                | ${32}
             ${'bytes1[32]'}                | ${32}
+            ${'bytes1[33]'}                | ${64}
             ${'bytes16[2]'}                | ${32}
             ${'bytes17[2]'}                | ${64}
             ${'bytes30[2]'}                | ${64}
             ${'bytes30[6][2]'}             | ${384}
             ${'bytes30[2][6]'}             | ${384}
             ${'bytes128[4]'}               | ${512}
+            ${'bytes256[2]'}               | ${512}
+            ${'bytes256[]'}                | ${32}
             ${'bytes32[1]'}                | ${32}
             ${'bytes32[2]'}                | ${64}
-            ${'bool[2][3]'}                | ${96}
-            ${'bool[3][2]'}                | ${64}
+            ${'bool[1]'}                   | ${32}
+            ${'bool[16]'}                  | ${32}
+            ${'bool[32]'}                  | ${32}
+            ${'bool[33]'}                  | ${64}
+            ${'bool[2][3]'}                | ${3 * 32}
+            ${'bool[3][2]'}                | ${2 * 32}
             ${'bool[2][]'}                 | ${32}
-            ${'bool[33][2]'}               | ${128}
-            ${'bool[33][2][2]'}            | ${256}
-            ${'bool[][64][64]'}            | ${32}
-            ${'bool[64][][64]'}            | ${32}
+            ${'bool[][2]'}                 | ${2 * 32}
+            ${'bool[][16]'}                | ${16 * 32}
+            ${'bool[][32]'}                | ${32 * 32}
+            ${'bool[][33]'}                | ${33 * 32}
+            ${'bool[33][3]'}               | ${3 * 2 * 32}
+            ${'bool[][2][3]'}              | ${3 * 2 * 32}
+            ${'bool[][][2][3]'}            | ${3 * 2 * 32}
+            ${'bool[][2][]'}               | ${32}
+            ${'bool[][][3]'}               | ${3 * 32}
+            ${'bool[33][2]'}               | ${2 * 2 * 32}
+            ${'bool[33][2][2]'}            | ${2 * 2 * 2 * 32}
+            ${'bool[][4][3]'}              | ${3 * 4 * 32}
+            ${'bool[][64][64]'}            | ${64 * 64 * 32}
+            ${'bool[64][][64]'}            | ${64 * 32}
             ${'bool[64][64][]'}            | ${32}
+            ${'TwoSlots[3][4]'}            | ${4 * 3 * 2 * 32}
+            ${'TwoSlots[4][3]'}            | ${3 * 4 * 2 * 32}
+            ${'TwoSlots[][3]'}             | ${3 * 32}
+            ${'TwoSlots[3][]'}             | ${32}
+            ${'TwoSlots[][]'}              | ${32}
+            ${'TwoSlots[][4][3]'}          | ${3 * 4 * 32}
+            ${'TwoSlots[4][3][]'}          | ${32}
         `('array type $type', ({ type, expected }) => {
             const umlCLass = new UmlClass(defaultClassProperties)
             const attribute: Attribute = {
@@ -90,9 +143,12 @@ describe('storage parser', () => {
                 type,
                 name: 'arrayName',
             }
-            expect(calcStorageByteSize(attribute, umlCLass, [])).toEqual(
-                expected
+            const { size } = calcStorageByteSize(
+                attribute,
+                umlCLass,
+                otherClasses
             )
+            expect(size).toEqual(expected)
         })
         describe('structs', () => {
             const otherClasses: UmlClass[] = [
@@ -261,13 +317,26 @@ describe('storage parser', () => {
                     type: 'ContractLevelStruct',
                     name: 'structName',
                 }
-                expect(
-                    calcStorageByteSize(attribute, umlCLass, [
-                        ...otherClasses,
-                        testStruct,
-                    ])
-                ).toEqual(expected)
+                const { size } = calcStorageByteSize(attribute, umlCLass, [
+                    ...otherClasses,
+                    testStruct,
+                ])
+                expect(size).toEqual(expected)
             })
+        })
+    })
+    describe('strings', () => {
+        it('bytes to string', () => {
+            expect(
+                parseBytes32String(
+                    '0x5465737453746f7261676520636f6e7472616374000000000000000000000000'
+                )
+            ).toEqual('TestStorage contract')
+        })
+        it('string to bytes', () => {
+            expect(formatBytes32String('Less than 31 bytes')).toEqual(
+                '0x4c657373207468616e2033312062797465730000000000000000000000000000'
+            )
         })
     })
 })

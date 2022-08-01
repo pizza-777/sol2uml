@@ -57,10 +57,13 @@ The Solidity code can be pulled from verified source code on Blockchain explorer
                 'sepolia',
             ])
             .default('mainnet')
+            .env('ETH_NETWORK')
     )
-    .option(
-        '-k, --apiKey <key>',
-        'Etherscan, Polygonscan, BscScan or Arbiscan API key'
+    .addOption(
+        new Option(
+            '-k, --apiKey <key>',
+            'Etherscan, Polygonscan, BscScan or Arbiscan API key'
+        ).env('SCAN_API_KEY')
     )
     .option('-v, --verbose', 'run with debugging statements', false)
 
@@ -249,7 +252,7 @@ program
                 )
             }
 
-            const dotString = convertStorages2Dot(storages)
+            const dotString = convertStorages2Dot(storages, combinedOptions)
 
             await writeOutputFiles(
                 dotString,
