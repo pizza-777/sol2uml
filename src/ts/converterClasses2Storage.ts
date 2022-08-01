@@ -7,6 +7,7 @@ import { BigNumber } from 'ethers'
 export enum StorageType {
     Contract = 'Contract',
     Struct = 'Struct',
+    Array = 'Array',
 }
 
 export interface Variable {
@@ -205,13 +206,6 @@ export const parseReferenceStorage = (
     storages: Storage[]
 ): Storage | undefined => {
     if (attribute.attributeType === AttributeType.UserDefined) {
-        // Have we already created the storage?
-        const existingStorage = storages.find(
-            (dep) => dep.name === attribute.type
-        )
-        if (existingStorage) {
-            return existingStorage
-        }
         // Is the user defined type linked to another Contract, Struct or Enum?
         const dependentClass = otherClasses.find(({ name }) => {
             return (
@@ -254,15 +248,6 @@ export const parseReferenceStorage = (
                 ? attribute.type.match(/=\\>((?!mapping)\w*)[\\[]/)
                 : attribute.type.match(/(\w+)\[/)
         if (result !== null && result[1] && !isElementary(result[1])) {
-            // Have we already created the storage?
-            const existingStorage = storages.find(
-                ({ name }) =>
-                    name === result[1] || name === result[1].split('.')[1]
-            )
-            if (existingStorage) {
-                return existingStorage
-            }
-
             // Find UserDefined type
             const typeClass = otherClasses.find(
                 ({ name }) =>

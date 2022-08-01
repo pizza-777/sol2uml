@@ -1,7 +1,8 @@
 import { Attribute, UmlClass } from './umlClass';
 export declare enum StorageType {
     Contract = "Contract",
-    Struct = "Struct"
+    Struct = "Struct",
+    Array = "Array"
 }
 export interface Variable {
     id: number;
