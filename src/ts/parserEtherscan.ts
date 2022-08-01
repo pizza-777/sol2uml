@@ -93,7 +93,9 @@ export class EtherscanParser {
                 /(\s)(import.*;)/gm,
                 '$1/* $2 */'
             )
-            solidityCode += removedImports
+            // Rename SPDX-License-Identifier to SPDX--License-Identifier so the merged file will compile
+            const removedSPDX = removedImports.replace(/SPDX-/, 'SPDX--')
+            solidityCode += removedSPDX
         })
         return {
             solidityCode,
