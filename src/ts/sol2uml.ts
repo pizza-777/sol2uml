@@ -156,7 +156,7 @@ If an Ethereum address with a 0x prefix is passed, the verified source code from
             await writeOutputFiles(
                 dotString,
                 fileFolderAddress,
-                contractName,
+                contractName || 'classDiagram',
                 combinedOptions.outputFormat,
                 combinedOptions.outputFileName
             )
@@ -258,7 +258,7 @@ program
             await writeOutputFiles(
                 dotString,
                 fileFolderAddress,
-                contractName,
+                contractName || 'storageDiagram',
                 combinedOptions.outputFormat,
                 combinedOptions.outputFileName
             )
