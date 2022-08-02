@@ -211,6 +211,7 @@ contract TestStorage is Parent, Parent2 {
         0xEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFD
     ];
     bool public flag11 = true;
+    TwoSlots[2] public twoSlots2x;
     TwoSlots[3][4] public twoSlots3x4;
     TwoSlots[4][3] public twoSlots4x3;
     TwoSlots[][3] public twoSlotsDynx3;
@@ -272,6 +273,15 @@ contract TestStorage is Parent, Parent2 {
         blacklist[0x2f2Db75C5276481E2B018Ac03e968af7763Ed118] = true;
         blacklist[0xdb2C46Ed8E850668b942d9Bd6D2ae8803c6789DF] = false;
         balance[0x2f2Db75C5276481E2B018Ac03e968af7763Ed118] = 0x1234566789ABCDEF;
+
+        twoSlots2x[0] = TwoSlots(
+            0xFFFF00000F000000000000000000000000000000000000000000000000FFFFFF,
+            0xFFFFF0000FF0000000000000000000000000000000000000000000000FFFFFFF
+        );
+        twoSlots2x[1] = TwoSlots(
+            0xFF0000000F0000000000000000000000000000000000000000000000000000FF,
+            0xFFF000000FF00000000000000000000000000000000000000000000000000FFF
+        );
 
         twoSlots3x4[0][0] = TwoSlots(
             0xFF000000000000000000000000000000000000000000000000000000000000FF,

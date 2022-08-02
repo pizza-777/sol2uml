@@ -88,7 +88,7 @@ export declare class UmlClass implements ClassProperties {
     name: string;
     absolutePath: string;
     relativePath: string;
-    imports?: Import[];
+    imports: Import[];
     stereotype?: ClassStereotype;
     constants: Constants[];
     attributes: Attribute[];

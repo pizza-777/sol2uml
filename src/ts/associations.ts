@@ -5,8 +5,8 @@ export const findAssociatedClass = (
     association: Association,
     sourceUmlClass: UmlClass,
     umlClasses: UmlClass[]
-) => {
-    return umlClasses.find((targetUmlClass) => {
+): UmlClass | undefined => {
+    let umlClass = umlClasses.find((targetUmlClass) => {
         return (
             // class is in the same source file
             (association.targetUmlClassName === targetUmlClass.name &&
@@ -38,4 +38,38 @@ export const findAssociatedClass = (
             )
         )
     })
+    if (umlClass) return umlClass
+
+    // Could not find so now need to recursively look at imports of imports
+    return findImplicitImport(association, sourceUmlClass, umlClasses)
+}
+
+const findImplicitImport = (
+    association: Association,
+    sourceUmlClass: UmlClass,
+    umlClasses: UmlClass[]
+): UmlClass | undefined => {
+    // Get all implicit imports. That is, imports that do not explicitly import contracts or interfaces.
+    const implicitImports = sourceUmlClass.imports.filter(
+        (i) => i.classNames.length === 0
+    )
+    // For each implicit import
+    for (const importDetail of implicitImports) {
+        // Find a class with the same absolute path as the import so we can get the new imports
+        const newSourceUmlClass = umlClasses.find(
+            (c) => c.absolutePath === importDetail.absolutePath
+        )
+        if (!newSourceUmlClass) {
+            // Could not find a class in the import file so just move onto the next loop
+            continue
+        }
+        // TODO need to handle imports that use aliases as the association will not be found
+        const umlClass = findAssociatedClass(
+            association,
+            newSourceUmlClass,
+            umlClasses
+        )
+        if (umlClass) return umlClass
+    }
+    return undefined
 }

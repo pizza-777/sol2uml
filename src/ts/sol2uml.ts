@@ -131,7 +131,7 @@ If an Ethereum address with a 0x prefix is passed, the verified source code from
                 ...options,
             }
 
-            const { umlClasses, contractName } = await parserUmlClasses(
+            let { umlClasses, contractName } = await parserUmlClasses(
                 fileFolderAddress,
                 combinedOptions
             )
@@ -144,6 +144,7 @@ If an Ethereum address with a 0x prefix is passed, the verified source code from
                     baseContractNames,
                     options.depth
                 )
+                contractName = baseContractNames[0]
             }
 
             const dotString = convertUmlClasses2Dot(

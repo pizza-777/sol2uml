@@ -221,7 +221,7 @@ function parseContractDefinition(
 
                     // Is the variable a constant that could be used in declaring fixed sized arrays
                     if (variable.isDeclaredConst) {
-                        if (variable?.expression.type === 'NumberLiteral') {
+                        if (variable?.expression?.type === 'NumberLiteral') {
                             umlClass.constants.push({
                                 name: variable.name,
                                 value: parseInt(variable.expression.number),
