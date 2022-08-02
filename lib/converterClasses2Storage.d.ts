@@ -12,7 +12,7 @@ export interface Variable {
     byteOffset: number;
     type: string;
     dynamic: boolean;
-    variable: string;
+    variable?: string;
     contractName?: string;
     noValue: boolean;
     value?: string;
@@ -25,6 +25,8 @@ export interface Storage {
     address?: string;
     slotKey?: string;
     type: StorageType;
+    arrayLength?: number;
+    arrayDynamic?: boolean;
     variables: Variable[];
 }
 /**
@@ -35,11 +37,12 @@ export interface Storage {
  */
 export declare const addStorageValues: (url: string, contractAddress: string, storage: Storage, blockTag: string) => Promise<void>;
 export declare const convertClasses2Storages: (contractName: string, umlClasses: UmlClass[]) => Storage[];
-export declare const parseReferenceStorage: (attribute: Attribute, otherClasses: UmlClass[], storages: Storage[]) => Storage | undefined;
+export declare const parseReferenceStorage: (attribute: Attribute, umlClass: UmlClass, otherClasses: UmlClass[], storages: Storage[]) => Storage | undefined;
 export declare const calcStorageByteSize: (attribute: Attribute, umlClass: UmlClass, otherClasses: UmlClass[]) => {
     size: number;
     dynamic: boolean;
 };
 export declare const isElementary: (type: string) => boolean;
 export declare const calcSlotKey: (variable: Variable) => string | undefined;
-export declare const shiftStorageSlots: (storage: Storage, slots: number) => void;
+export declare const offsetStorageSlots: (storage: Storage, slots: number, storages: Storage[]) => void;
+export declare const findDimensionLength: (umlClass: UmlClass, dimension: string) => number;

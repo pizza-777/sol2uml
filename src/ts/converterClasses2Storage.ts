@@ -18,7 +18,7 @@ export interface Variable {
     byteOffset: number
     type: string
     dynamic: boolean
-    variable: string
+    variable?: string
     contractName?: string
     noValue: boolean
     value?: string
@@ -32,6 +32,8 @@ export interface Storage {
     address?: string
     slotKey?: string
     type: StorageType
+    arrayLength?: number
+    arrayDynamic?: boolean
     variables: Variable[]
 }
 
@@ -113,10 +115,11 @@ const parseVariables = (
     // Recursively parse each new inherited contract
     newInheritedContracts.forEach((parent) => {
         const parentClass = findAssociatedClass(parent, umlClass, umlClasses)
-        if (!parentClass)
+        if (!parentClass) {
             throw Error(
-                `Failed to find parent contract ${parent.targetUmlClassName} of ${umlClass.absolutePath}`
+                `Failed to find inherited contract "${parent.targetUmlClassName}" of "${umlClass.absolutePath}"`
             )
+        }
         // recursively parse inherited contract
         parseVariables(
             parentClass,
@@ -144,6 +147,7 @@ const parseVariables = (
         // find any dependent storage locations
         const referenceStorage = parseReferenceStorage(
             attribute,
+            umlClass,
             umlClasses,
             storages
         )
@@ -189,7 +193,11 @@ const parseVariables = (
         }
         if (referenceStorage) {
             if (!newVariable.dynamic) {
-                shiftStorageSlots(referenceStorage, newVariable.fromSlot)
+                offsetStorageSlots(
+                    referenceStorage,
+                    newVariable.fromSlot,
+                    storages
+                )
             } else if (attribute.attributeType === AttributeType.Array) {
                 referenceStorage.slotKey = calcSlotKey(newVariable)
             }
@@ -202,9 +210,94 @@ const parseVariables = (
 
 export const parseReferenceStorage = (
     attribute: Attribute,
+    umlClass: UmlClass,
     otherClasses: UmlClass[],
     storages: Storage[]
 ): Storage | undefined => {
+    if (attribute.attributeType === AttributeType.Array) {
+        // storage is dynamic if the attribute type ends in []
+        const result = attribute.type.match(/\[(\w*)]$/)
+        const dynamic = result[1] === ''
+        const arrayLength = !dynamic
+            ? findDimensionLength(umlClass, result[1])
+            : undefined
+
+        // get the type of the array items. eg
+        // address[][4][2] will have base type address[][4]
+        const baseType = attribute.type.substring(
+            0,
+            attribute.type.lastIndexOf('[')
+        )
+        let baseAttributeType: AttributeType
+        if (isElementary(baseType)) {
+            baseAttributeType = AttributeType.Elementary
+        } else if (baseType[baseType.length - 1] === ']') {
+            baseAttributeType = AttributeType.Array
+        } else {
+            baseAttributeType = AttributeType.UserDefined
+        }
+        const baseAttribute: Attribute = {
+            visibility: attribute.visibility,
+            name: baseType,
+            type: baseType,
+            attributeType: baseAttributeType,
+        }
+        const { size: arrayItemSize } = calcStorageByteSize(
+            baseAttribute,
+            umlClass,
+            otherClasses
+        )
+        const slotSize = arrayItemSize > 16 ? 32 : arrayItemSize
+
+        const firstVariable: Variable = {
+            id: variableId++,
+            fromSlot: 0,
+            toSlot: Math.floor((slotSize - 1) / 32),
+            byteSize: arrayItemSize,
+            byteOffset: 0,
+            type: baseType,
+            dynamic,
+            noValue: false,
+        }
+        const variables = [firstVariable]
+        if (arrayLength > 1) {
+            for (let i = 1; i < arrayLength; i++) {
+                variables.push({
+                    id: variableId++,
+                    fromSlot: Math.floor((i * slotSize) / 32),
+                    toSlot: Math.floor(((i + 1) * slotSize - 1) / 32),
+                    byteSize: arrayItemSize,
+                    byteOffset: (i * slotSize) % 32,
+                    type: baseType,
+                    dynamic,
+                    noValue: false,
+                })
+            }
+        }
+
+        // recursively add storage
+        if (baseAttributeType !== AttributeType.Elementary) {
+            const referenceStorage = parseReferenceStorage(
+                baseAttribute,
+                umlClass,
+                otherClasses,
+                storages
+            )
+            firstVariable.referenceStorageId = referenceStorage?.id
+        }
+
+        const newStorage: Storage = {
+            id: storageId++,
+            name: `${attribute.type}: ${attribute.name}`,
+            type: StorageType.Array,
+            arrayDynamic: dynamic,
+            arrayLength,
+            variables,
+        }
+        storages.push(newStorage)
+
+        return newStorage
+    }
     if (attribute.attributeType === AttributeType.UserDefined) {
         // Is the user defined type linked to another Contract, Struct or Enum?
         const dependentClass = otherClasses.find(({ name }) => {
@@ -236,17 +329,12 @@ export const parseReferenceStorage = (
         }
         return undefined
     }
-    if (
-        attribute.attributeType === AttributeType.Mapping ||
-        attribute.attributeType === AttributeType.Array
-    ) {
-        // get the UserDefined type from the mapping or array
+    if (attribute.attributeType === AttributeType.Mapping) {
+        // get the UserDefined type from the mapping
         // note the mapping could be an array of Structs
         // Could also be a mapping of a mapping
-        const result =
-            attribute.attributeType === AttributeType.Mapping
-                ? attribute.type.match(/=\\>((?!mapping)\w*)[\\[]/)
-                : attribute.type.match(/(\w+)\[/)
+        const result = attribute.type.match(/=\\>((?!mapping)\w*)[\\[]/)
+        // If mapping of user defined type
         if (result !== null && result[1] && !isElementary(result[1])) {
             // Find UserDefined type
             const typeClass = otherClasses.find(
@@ -308,21 +396,8 @@ export const calcStorageByteSize = (
         let dimension = dimensionsStrReversed.shift()
         const fixedDimensions: number[] = []
         while (dimension && dimension !== '') {
-            const dimensionNum = parseInt(dimension)
-            if (!isNaN(dimensionNum)) {
-                fixedDimensions.push(dimensionNum)
-            } else {
-                // Try and size array dimension from declared constants
-                const constant = umlClass.constants.find(
-                    (constant) => constant.name === dimension
-                )
-                if (!constant) {
-                    throw Error(
-                        `Could not size fixed sized array with dimension "${dimension}"`
-                    )
-                }
-                fixedDimensions.push(constant.value)
-            }
+            const dimensionNum = findDimensionLength(umlClass, dimension)
+            fixedDimensions.push(dimensionNum)
             // read the next dimension for the next loop
             dimension = dimensionsStrReversed.shift()
         }
@@ -530,9 +605,46 @@ export const calcSlotKey = (variable: Variable): string | undefined => {
     return BigNumber.from(variable.fromSlot).toHexString()
 }
 
-export const shiftStorageSlots = (storage: Storage, slots: number) => {
-    storage.variables.forEach((v) => {
-        v.fromSlot += slots
-        v.toSlot += slots
+// recursively offset the slots numbers of a storage item
+export const offsetStorageSlots = (
+    storage: Storage,
+    slots: number,
+    storages: Storage[]
+) => {
+    storage.variables.forEach((variable) => {
+        variable.fromSlot += slots
+        variable.toSlot += slots
+        if (variable.referenceStorageId) {
+            // recursively offset the referenced storage
+            const referenceStorage = storages.find(
+                (s) => s.id === variable.referenceStorageId
+            )
+            if (!referenceStorage.arrayDynamic) {
+                offsetStorageSlots(referenceStorage, slots, storages)
+            } else {
+                referenceStorage.slotKey = calcSlotKey(variable)
+            }
+        }
     })
+}
+
+export const findDimensionLength = (
+    umlClass: UmlClass,
+    dimension: string
+): number => {
+    const dimensionNum = parseInt(dimension)
+    if (Number.isInteger(dimensionNum)) {
+        return dimensionNum
+    } else {
+        // Try and size array dimension from declared constants
+        const constant = umlClass.constants.find(
+            (constant) => constant.name === dimension
+        )
+        if (!constant) {
+            throw Error(
+                `Could not size fixed sized array with dimension "${dimension}"`
+            )
+        }
+        return constant.value
+    }
 }

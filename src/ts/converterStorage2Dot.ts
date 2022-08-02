@@ -1,4 +1,4 @@
-import { Storage, Variable, StorageType } from './converterClasses2Storage'
+import { Storage, StorageType, Variable } from './converterClasses2Storage'
 
 const debug = require('debug')('sol2uml')
 
@@ -11,7 +11,7 @@ digraph StorageDiagram {
 rankdir=LR
 color=black
 arrowhead=open
-node [shape=record, style=filled, fillcolor=gray95]`
+node [shape=record, style=filled, fillcolor=gray95 fontname="Courier New"]`
 
     // process contract and the struct storages
     storages.forEach((storage) => {
@@ -43,7 +43,9 @@ export function convertStorage2Dot(
     // write storage header with name and optional address
     dotString += `\n${storage.id} [label="${storage.name} \\<\\<${
         storage.type
-    }\\>\\>\\n${storage.address || storage.slotKey || ''} | {`
+    }\\>\\>\\n${storage.address || storage.slotKey || ''}`
+
+    dotString += ' | {'
 
     const startingVariables = storage.variables.filter(
         (s) => s.byteOffset === 0
