@@ -60,7 +60,7 @@ The `-u ---url` option is used to tell which Ethereum node to get the storage va
 sol2uml storage 0xa2327a938febf5fec13bacfb16ae10ecbc4cbdcf -d -s 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48 -u https://your-url
 ```
 
-![USDC](./usdcData.png)
+![USDC](./usdcData.svg)
 
 ## Contract Inheritance
 
