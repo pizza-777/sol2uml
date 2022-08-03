@@ -247,12 +247,11 @@ export const parseReferenceStorage = (
             umlClass,
             otherClasses
         )
-        const slotSize = arrayItemSize > 16 ? 32 : arrayItemSize
 
         const firstVariable: Variable = {
             id: variableId++,
             fromSlot: 0,
-            toSlot: Math.floor((slotSize - 1) / 32),
+            toSlot: Math.floor((arrayItemSize - 1) / 32),
             byteSize: arrayItemSize,
             byteOffset: 0,
             type: baseType,
@@ -264,10 +263,10 @@ export const parseReferenceStorage = (
             for (let i = 1; i < arrayLength; i++) {
                 variables.push({
                     id: variableId++,
-                    fromSlot: Math.floor((i * slotSize) / 32),
-                    toSlot: Math.floor(((i + 1) * slotSize - 1) / 32),
+                    fromSlot: Math.floor((i * arrayItemSize) / 32),
+                    toSlot: Math.floor(((i + 1) * arrayItemSize - 1) / 32),
                     byteSize: arrayItemSize,
-                    byteOffset: (i * slotSize) % 32,
+                    byteOffset: (i * arrayItemSize) % 32,
                     type: baseType,
                     dynamic,
                     noValue: false,
