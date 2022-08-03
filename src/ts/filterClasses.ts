@@ -1,4 +1,10 @@
-import { Dijkstra, Edge, WeightedDiGraph } from 'js-graph-algorithms'
+import {
+    DiGraph,
+    Dijkstra,
+    Edge,
+    TopologicalSort,
+    WeightedDiGraph,
+} from 'js-graph-algorithms'
 import { UmlClass } from './umlClass'
 import { findAssociatedClass } from './associations'
 
@@ -9,7 +15,7 @@ export const classesConnectedToBaseContracts = (
 ): UmlClass[] => {
     let filteredUmlClasses: { [contractName: string]: UmlClass } = {}
 
-    const graph = loadGraph(umlClasses)
+    const weightedDirectedGraph = loadWeightedDirectedGraph(umlClasses)
 
     for (const baseContractName of baseContractNames) {
         filteredUmlClasses = {
@@ -17,7 +23,7 @@ export const classesConnectedToBaseContracts = (
             ...classesConnectedToBaseContract(
                 umlClasses,
                 baseContractName,
-                graph,
+                weightedDirectedGraph,
                 depth
             ),
         }
@@ -29,7 +35,7 @@ export const classesConnectedToBaseContracts = (
 export const classesConnectedToBaseContract = (
     umlClasses: UmlClass[],
     baseContractName: string,
-    graph: WeightedDiGraph,
+    weightedDirectedGraph: WeightedDiGraph,
     depth: number = 1000
 ): { [contractName: string]: UmlClass } => {
     // Find the base UML Class from the base contract name
@@ -43,7 +49,7 @@ export const classesConnectedToBaseContract = (
         )
     }
 
-    const dfs = new Dijkstra(graph, baseUmlClass.id)
+    const dfs = new Dijkstra(weightedDirectedGraph, baseUmlClass.id)
 
     // Get all the UML Classes that are connected to the base contract
     const filteredUmlClasses: { [contractName: string]: UmlClass } = {}
@@ -56,8 +62,8 @@ export const classesConnectedToBaseContract = (
     return filteredUmlClasses
 }
 
-function loadGraph(umlClasses: UmlClass[]): WeightedDiGraph {
-    const graph = new WeightedDiGraph(umlClasses.length) // 6 is the number vertices in the graph
+function loadWeightedDirectedGraph(umlClasses: UmlClass[]): WeightedDiGraph {
+    const weightedDirectedGraph = new WeightedDiGraph(umlClasses.length) // the number vertices in the graph
 
     for (const sourceUmlClass of umlClasses) {
         for (const association of Object.values(sourceUmlClass.associations)) {
@@ -72,9 +78,48 @@ function loadGraph(umlClasses: UmlClass[]): WeightedDiGraph {
                 continue
             }
 
-            graph.addEdge(new Edge(sourceUmlClass.id, targetUmlClass.id, 1))
+            weightedDirectedGraph.addEdge(
+                new Edge(sourceUmlClass.id, targetUmlClass.id, 1)
+            )
         }
     }
 
-    return graph
+    return weightedDirectedGraph
+}
+
+export const topologicalSortClasses = (umlClasses: UmlClass[]): UmlClass[] => {
+    const directedAcyclicGraph = loadDirectedAcyclicGraph(umlClasses)
+    const topologicalSort = new TopologicalSort(directedAcyclicGraph)
+
+    // Topological sort the class ids
+    const sortedUmlClassIds = topologicalSort.order().reverse()
+    const sortedUmlClasses = sortedUmlClassIds.map((umlClassId) =>
+        // Lookup the UmlClass for each class id
+        umlClasses.find((umlClass) => umlClass.id === umlClassId)
+    )
+
+    return sortedUmlClasses
+}
+
+const loadDirectedAcyclicGraph = (umlClasses: UmlClass[]): DiGraph => {
+    const directedAcyclicGraph = new DiGraph(umlClasses.length) // the number vertices in the graph
+
+    for (const sourceUmlClass of umlClasses) {
+        for (const association of Object.values(sourceUmlClass.associations)) {
+            // Find the first UML Class that matches the target class name
+            const targetUmlClass = findAssociatedClass(
+                association,
+                sourceUmlClass,
+                umlClasses
+            )
+
+            if (!targetUmlClass) {
+                continue
+            }
+
+            directedAcyclicGraph.addEdge(sourceUmlClass.id, targetUmlClass.id)
+        }
+    }
+
+    return directedAcyclicGraph
 }

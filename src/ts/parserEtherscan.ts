@@ -4,6 +4,7 @@ import { parse } from '@solidity-parser/parser'
 
 import { convertAST2UmlClasses } from './converterAST2Classes'
 import { UmlClass } from './umlClass'
+import { topologicalSortClasses } from './filterClasses'
 
 const networks = <const>[
     'mainnet',
@@ -83,8 +84,40 @@ export class EtherscanParser {
             contractAddress
         )
 
+        // Parse the UmlClasses from the Solidity code in each file
+        let umlClasses: UmlClass[] = []
+        for (const file of files) {
+            const node = await this.parseSourceCode(file.code)
+            const umlClass = convertAST2UmlClasses(node, file.filename)
+            umlClasses = umlClasses.concat(umlClass)
+        }
+
+        // Sort the classes so dependent code is first
+        const topologicalSortedClasses = topologicalSortClasses(umlClasses)
+        // Get a list of filenames the classes are in
+        const sortedFilenames = topologicalSortedClasses.map(
+            (umlClass) => umlClass.relativePath
+        )
+        // Remove duplicate filenames from the list
+        const dependentFilenames = [...new Set(sortedFilenames)]
+
+        // find any files that didn't have dependencies found
+        const nonDependentFiles = files.filter(
+            (f) => !dependentFilenames.includes(f.filename)
+        )
+        const nonDependentFilenames = nonDependentFiles.map((f) => f.filename)
+
         let solidityCode = ''
-        files.forEach((file) => {
+        // output non dependent code before the dependent files just in case sol2uml missed some dependencies
+        const filenames = [...nonDependentFilenames, ...dependentFilenames]
+
+        // For each filename
+        filenames.forEach((filename) => {
+            // Lookup the file that contains the Solidity code
+            const file = files.find((f) => f.filename === filename)
+            if (!file)
+                throw Error(`Failed to find file with filename "${filename}"`)
+
             // comment out any import statements
             // match whitespace before import
             // and characters after import up to ;

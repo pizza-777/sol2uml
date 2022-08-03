@@ -20,10 +20,11 @@ const debug = require('debug')('sol2uml')
 program
     .usage(
         `[subcommand] <options>
-The three subcommands:
-* class:    Generates a UML class diagram from Solidity source code. default
+
+sol2uml comes with three subcommands:
+* class:    Generates a UML class diagram from Solidity source code. (default)
 * storage:  Generates a diagram of a contract's storage slots.
-* flatten:  Pulls verified source files from a Blockchain explorer into one, flat, local Solidity file.
+* flatten:  Merges verified source files from a Blockchain explorer into one local file.
 
 The Solidity code can be pulled from verified source code on Blockchain explorers like Etherscan or from local Solidity files.`
     )
@@ -169,8 +170,11 @@ If an Ethereum address with a 0x prefix is passed, the verified source code from
 
 program
     .command('storage')
-    .description(
-        "Visually display a contract's storage slots.\n\nWARNING: sol2uml does not use the Solidity compiler so may differ with solc. A known example is fixed-sized arrays declared with an expression will fail to be sized."
+    .description("Visually display a contract's storage slots.")
+    .usage(
+        `<fileFolderAddress> [options]
+
+WARNING: sol2uml does not use the Solidity compiler so may differ with solc. A known example is fixed-sized arrays declared with an expression will fail to be sized.`
     )
     .argument(
         '<fileFolderAddress>',
@@ -270,9 +274,20 @@ program
 program
     .command('flatten')
     .description(
-        'get all verified source code for a contract from the Blockchain explorer into one local file'
+        'Merges verified source files for a contract from a Blockchain explorer into one local file.'
     )
-    .argument('<contractAddress>', 'Contract address')
+    .usage(
+        `<contractAddress> [options]
+
+In order for the merged code to compile, the following is done:
+1. File imports are commented out.
+2. "SPDX-License-Identifier" is renamed to "SPDX--License-Identifier".
+3. Contract dependencies are analysed so the files are merged in an order that will compile.`
+    )
+    .argument(
+        '<contractAddress>',
+        'Contract address in hexadecimal format with a 0x prefix.'
+    )
     .action(async (contractAddress, options, command) => {
         try {
             debug(`About to flatten ${contractAddress}`)

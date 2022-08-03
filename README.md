@@ -44,12 +44,11 @@ npm ls sol2uml -g
 ## Command Line Interface (CLI)
 
 ```
-$ sol2uml --help
 Usage: sol2uml [subcommand] <options>
 The three subcommands:
 * class:    Generates a UML class diagram from Solidity source code. default
 * storage:  Generates a diagram of a contract's storage slots.
-* flatten:  Pulls verified source files from a Blockchain explorer into one, flat, local Solidity file.
+* flatten:  Merges verified source files from a Blockchain explorer into one local file.
 
 The Solidity code can be pulled from verified source code on Blockchain explorers like Etherscan or from local Solidity files.
 
@@ -73,7 +72,6 @@ Commands:
 ### Class usage
 
 ```
-$sol2uml class --help
 Usage: sol2uml class <fileFolderAddress> [options]
 
 Generates UML diagrams from Solidity source code.
@@ -110,11 +108,11 @@ Options:
 ### Storage usage
 
 ```
-Usage: sol2uml storage [options] <fileFolderAddress>
-
-Visually display a contract's storage slots.
+Usage: sol2uml storage <fileFolderAddress> [options]
 
 WARNING: sol2uml does not use the Solidity compiler so may differ with solc. A known example is fixed-sized arrays declared with an expression will fail to be sized.
+
+Visually display a contract's storage slots.
 
 Arguments:
   fileFolderAddress        file name, base folder or contract address
@@ -122,8 +120,7 @@ Arguments:
 Options:
   -c, --contract <name>    Contract name in local Solidity files. Not needed when using an address as the first argument as the contract name can be derived from Etherscan.
   -d, --data               Gets the values in the storage slots from an Ethereum node. (default: false)
-  -s, --storage <address>  The address of the contract with the storage values. This will be different from the contract with the code if a proxy contract is used. This is not needed if `fileFolderAddress` is an address and
-                           the contract is not proxied.
+  -s, --storage <address>  The address of the contract with the storage values. This will be different from the contract with the code if a proxy contract is used. This is not needed if `fileFolderAddress` is an address and the contract is not proxied.
   -u, --url <url>          URL of the Ethereum node to get storage values if the `data` option is used. (default: "http://localhost:8545", env: NODE_URL)
   -bn, --block <number>    Block number to get the contract storage values from. (default: "latest")
   -h, --help               display help for command
@@ -132,17 +129,20 @@ Options:
 ### Flatten usage
 
 ```
-$sol2uml flatten --help
-Usage: sol2uml flatten [options] <contractAddress>
+Usage: sol2uml flatten <contractAddress> [options]
 
-get all verified source code for a contract from the Blockchain explorer into one local file
+In order for the merged code to compile, the following is done:
+1. File imports are commented out.
+2. "SPDX-License-Identifier" is renamed to "SPDX--License-Identifier".
+3. Contract dependencies are analysed so the files are merged in an order that will compile.
+
+Merges verified source files for a contract from a Blockchain explorer into one local file.
 
 Arguments:
-  contractAddress  Contract address
+  contractAddress  Contract address in hexadecimal format with a 0x prefix.
 
 Options:
   -h, --help       display help for command
-
 ```
 
 ## UML Class diagram examples
