@@ -6,6 +6,8 @@ import { convertAST2UmlClasses } from './converterAST2Classes'
 import { UmlClass } from './umlClass'
 import { topologicalSortClasses } from './filterClasses'
 
+const debug = require('debug')('sol2uml')
+
 const networks = <const>[
     'mainnet',
     'ropsten',
@@ -165,6 +167,9 @@ export class EtherscanParser {
         const description = `get verified source code for address ${contractAddress} from Etherscan API.`
 
         try {
+            debug(
+                `About to get Solidity source code for ${contractAddress} from ${this.url}`
+            )
             const response: any = await axios.get(this.url, {
                 params: {
                     module: 'contract',

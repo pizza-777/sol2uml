@@ -1,6 +1,6 @@
 {
   "name": "sol2uml",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "Unified Modeling Language (UML) class diagram generator for Solidity contracts",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",

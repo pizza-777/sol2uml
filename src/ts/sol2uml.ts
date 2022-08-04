@@ -13,6 +13,7 @@ import { convertStorages2Dot } from './converterStorage2Dot'
 import { isAddress } from './utils/regEx'
 import { writeOutputFiles, writeSolidity } from './writerFiles'
 const program = new Command()
+program.version(require('../package.json').version)
 
 const debugControl = require('debug')
 const debug = require('debug')('sol2uml')

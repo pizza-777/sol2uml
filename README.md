@@ -53,6 +53,7 @@ The three subcommands:
 The Solidity code can be pulled from verified source code on Blockchain explorers like Etherscan or from local Solidity files.
 
 Options:
+  -V, --version                                output the version number
   -sf, --subfolders <value>                    number of subfolders that will be recursively searched for Solidity files. (default: all)
   -f, --outputFormat <value>                   output file format. (choices: "svg", "png", "dot", "all", default: "svg")
   -o, --outputFileName <value>                 output file name
