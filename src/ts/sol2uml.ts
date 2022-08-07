@@ -2,7 +2,7 @@
 
 import { convertUmlClasses2Dot } from './converterClasses2Dot'
 import { parserUmlClasses } from './parserGeneral'
-import { EtherscanParser } from './parserEtherscan'
+import { EtherscanParser, networks } from './parserEtherscan'
 import { classesConnectedToBaseContracts } from './filterClasses'
 import { Command, Option } from 'commander'
 import {
@@ -12,8 +12,14 @@ import {
 import { convertStorages2Dot } from './converterStorage2Dot'
 import { isAddress } from './utils/regEx'
 import { writeOutputFiles, writeSolidity } from './writerFiles'
+import { basename } from 'path'
 const program = new Command()
-program.version(require('../package.json').version)
+
+const version =
+    basename(__dirname) === 'lib'
+        ? require('../package.json').version // used when run from compile js in /lib
+        : require('../../package.json').version // used when run from TypeScript source files under src/ts via ts-node
+program.version(version)
 
 const debugControl = require('debug')
 const debug = require('debug')('sol2uml')
@@ -47,24 +53,14 @@ The Solidity code can be pulled from verified source code on Blockchain explorer
     )
     .addOption(
         new Option('-n, --network <network>', 'Ethereum network')
-            .choices([
-                'mainnet',
-                'polygon',
-                'bsc',
-                'arbitrum',
-                'ropsten',
-                'kovan',
-                'rinkeby',
-                'goerli',
-                'sepolia',
-            ])
+            .choices(networks)
             .default('mainnet')
             .env('ETH_NETWORK')
     )
     .addOption(
         new Option(
             '-k, --apiKey <key>',
-            'Etherscan, Polygonscan, BscScan or Arbiscan API key'
+            'Blockchain explorer API key. eg Etherscan, Arbiscan, BscScan, CronoScan, FTMScan, PolygonScan or SnowTrace API key'
         ).env('SCAN_API_KEY')
     )
     .option('-v, --verbose', 'run with debugging statements', false)
@@ -165,7 +161,8 @@ If an Ethereum address with a 0x prefix is passed, the verified source code from
 
             debug(`Finished generating UML`)
         } catch (err) {
-            console.error(`Failed to generate UML diagram\n${err.stack}`)
+            console.error(err)
+            process.exit(2)
         }
     })
 
@@ -268,7 +265,8 @@ WARNING: sol2uml does not use the Solidity compiler so may differ with solc. A k
                 combinedOptions.outputFileName
             )
         } catch (err) {
-            console.error(`Failed to generate storage diagram.\n${err.stack}`)
+            console.error(err.stack)
+            process.exit(2)
         }
     })
 
@@ -311,7 +309,8 @@ In order for the merged code to compile, the following is done:
                 combinedOptions.outputFileName || contractName
             await writeSolidity(solidityCode, outputFilename)
         } catch (err) {
-            console.error(`Failed to flatten files.\n${err.stack}`)
+            console.error(err)
+            process.exit(2)
         }
     })
 

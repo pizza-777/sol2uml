@@ -8,7 +8,7 @@ import { topologicalSortClasses } from './filterClasses'
 
 const debug = require('debug')('sol2uml')
 
-const networks = <const>[
+export const networks = <const>[
     'mainnet',
     'ropsten',
     'kovan',
@@ -16,8 +16,19 @@ const networks = <const>[
     'goerli',
     'sepolia',
     'polygon',
-    'bsc',
+    'testnet.polygon',
     'arbitrum',
+    'testnet.arbitrum',
+    'avalanche',
+    'testnet.avalanche',
+    'bsc',
+    'testnet.bsc',
+    'crono',
+    'fantom',
+    'testnet.fantom',
+    'moonbeam',
+    'optimistic',
+    'kovan-optimistic',
 ]
 type Network = typeof networks[number]
 
@@ -37,11 +48,41 @@ export class EtherscanParser {
         } else if (network === 'polygon') {
             this.url = 'https://api.polygonscan.com/api'
             this.apikey = 'AMHGNTV5A7XYGX2M781JB3RC1DZFVRWQEB'
-        } else if (network === 'bsc') {
-            this.url = 'https://api.bscscan.com/api'
-            this.apikey = 'APYH49FXVY9UA3KTDI6F4WP3KPIC86NITN'
+        } else if (network === 'testnet.polygon') {
+            this.url = 'https://api-testnet.polygonscan.com/api'
+            this.apikey = 'AMHGNTV5A7XYGX2M781JB3RC1DZFVRWQEB'
         } else if (network === 'arbitrum') {
             this.url = 'https://api.arbiscan.io/api'
+            this.apikey = 'ZGTK2TAGWMAB6IAC12BMK8YYPNCPIM8VDQ'
+        } else if (network === 'testnet.arbitrum') {
+            this.url = 'https://api-testnet.arbiscan.io/api'
+            this.apikey = 'ZGTK2TAGWMAB6IAC12BMK8YYPNCPIM8VDQ'
+        } else if (network === 'avalanche') {
+            this.url = 'https://api.snowtrace.io/api'
+            this.apikey = 'U5FAN98S5XNH5VI83TI4H35R9I4TDCKEJY'
+        } else if (network === 'testnet.avalanche') {
+            this.url = 'https://api-testnet.snowtrace.io/api'
+            this.apikey = 'U5FAN98S5XNH5VI83TI4H35R9I4TDCKEJY'
+        } else if (network === 'bsc') {
+            this.url = 'https://api.bscscan.com/api'
+        } else if (network === 'testnet.bsc') {
+            this.url = 'https://api-testnet.bscscan.com/api'
+        } else if (network === 'crono') {
+            this.url = 'https://api.cronoscan.com/api'
+            this.apikey = '76A3RG5WHTPMMR66E9SFI2EIDT6MP976W2'
+            this.apikey = 'APYH49FXVY9UA3KTDI6F4WP3KPIC86NITN'
+        } else if (network === 'fantom') {
+            this.url = 'https://api.ftmscan.com/api'
+            this.apikey = '71KRX13XPZMGR3D1Q85W78G2DSZ4JPMAEX'
+        } else if (network === 'testnet.fantom') {
+            this.url = 'https://api-testnet.ftmscan.com/api'
+            this.apikey = '71KRX13XPZMGR3D1Q85W78G2DSZ4JPMAEX'
+        } else if (network === 'optimistic' || network === 'kovan-optimistic') {
+            this.url = `https://api-${network}.etherscan.io/api`
+            this.apikey = 'FEXS1HXVA4Y2RNTMEA8V1UTK21S4JWHH9U'
+        } else if (network === 'moonbeam') {
+            this.url = 'https://api-moonbeam.moonscan.io/api'
+            this.apikey = '5EUFXW6TDC16VERF3D9SCWRRU6AEMTBHNJ'
         } else {
             this.url = `https://api-${network}.etherscan.io/api`
         }

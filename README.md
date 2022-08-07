@@ -58,8 +58,8 @@ Options:
   -f, --outputFormat <value>                   output file format. (choices: "svg", "png", "dot", "all", default: "svg")
   -o, --outputFileName <value>                 output file name
   -i, --ignoreFilesOrFolders <filesOrFolders>  comma separated list of files or folders to ignore
-  -n, --network <network>                      Ethereum network (choices: "mainnet", "polygon", "bsc", "arbitrum", "ropsten", "kovan", "rinkeby", "goerli", "sepolia", default: "mainnet")
-  -k, --apiKey <key>                           Etherscan, Polygonscan or BscScan API key
+  -n, --network <network>                      Ethereum network (choices: "mainnet", "ropsten", "kovan", "rinkeby", "goerli", "sepolia", "polygon", "testnet.polygon", "arbitrum", "testnet.arbitrum", "avalanche", "testnet.avalanche", "bsc", "testnet.bsc", "crono", "fantom", "testnet.fantom", "moonbeam", "optimistic", "kovan-optimistic", default: "mainnet", env: ETH_NETWORK)
+  -k, --apiKey <key>                           Blockchain explorer API key. eg Etherscan, Arbiscan, BscScan, CronoScan, FTMScan, PolygonScan or SnowTrace API key (env: SCAN_API_KEY)
   -v, --verbose                                run with debugging statements (default: false)
   -h, --help                                   display help for command
 
