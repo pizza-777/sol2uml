@@ -11,7 +11,7 @@ const url = process.env.NODE_URL
 describe('Slot Values', () => {
     test('Emissions controller first slot latest', async () => {
         expect(
-            await getStorageValue(url, emissionController, 1, 'latest')
+            await getStorageValue(url, emissionController, 1, '15272562')
         ).toEqual(
             '0x00000000000000000000000000000000000000000000000000000AB700000A96'
         )
@@ -65,7 +65,7 @@ describe('Slot Values', () => {
                 6,
                 '0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103',
             ],
-            'latest'
+            '15272562'
         )
         console.log(values)
         expect(values).toEqual([
@@ -84,7 +84,7 @@ describe('Slot Values', () => {
             url,
             emissionController,
             [2, 1, 0],
-            'latest'
+            '15272562'
         )
         console.log(values)
         expect(values).toEqual([
