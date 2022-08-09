@@ -36,7 +36,7 @@ export interface Storage {
  * @param storage is mutated with the storage values
  */
 export declare const addStorageValues: (url: string, contractAddress: string, storage: Storage, blockTag: string) => Promise<void>;
-export declare const convertClasses2Storages: (contractName: string, umlClasses: UmlClass[]) => Storage[];
+export declare const convertClasses2Storages: (contractName: string, umlClasses: UmlClass[], contractFilename?: string) => Storage[];
 export declare const parseReferenceStorage: (attribute: Attribute, umlClass: UmlClass, otherClasses: UmlClass[], storages: Storage[]) => Storage | undefined;
 export declare const calcStorageByteSize: (attribute: Attribute, umlClass: UmlClass, otherClasses: UmlClass[]) => {
     size: number;

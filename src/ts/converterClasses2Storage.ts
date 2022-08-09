@@ -3,6 +3,9 @@ import { findAssociatedClass } from './associations'
 import { getStorageValues } from './slotValues'
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils'
 import { BigNumber } from 'ethers'
+import path from 'path'
+
+const debug = require('debug')('sol2uml')
 
 export enum StorageType {
     Contract = 'Contract',
@@ -63,15 +66,29 @@ export const addStorageValues = async (
 
 export const convertClasses2Storages = (
     contractName: string,
-    umlClasses: UmlClass[]
+    umlClasses: UmlClass[],
+    contractFilename?: string
 ): Storage[] => {
     // Find the base UML Class from the base contract name
-    const umlClass = umlClasses.find(({ name }) => {
-        return name === contractName
+    const umlClass = umlClasses.find(({ name, relativePath }) => {
+        if (!contractFilename) {
+            return name === contractName
+        }
+        return (
+            name === contractName &&
+            (relativePath == contractFilename ||
+                path.basename(relativePath) === contractFilename)
+        )
     })
     if (!umlClass) {
-        throw Error(`Failed to find contract with name "${contractName}"`)
+        const contractFilenameError = contractFilename
+            ? ` in filename "${contractFilename}"`
+            : ''
+        throw Error(
+            `Failed to find contract with name "${contractName}"${contractFilenameError}`
+        )
     }
+    debug(`Found contract "${contractName}" in ${umlClass.absolutePath}`)
 
     const storages: Storage[] = []
     const variables = parseVariables(umlClass, umlClasses, [], storages, [])

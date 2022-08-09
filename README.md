@@ -119,12 +119,13 @@ Arguments:
   fileFolderAddress        file name, base folder or contract address
 
 Options:
-  -c, --contract <name>    Contract name in local Solidity files. Not needed when using an address as the first argument as the contract name can be derived from Etherscan.
-  -d, --data               Gets the values in the storage slots from an Ethereum node. (default: false)
-  -s, --storage <address>  The address of the contract with the storage values. This will be different from the contract with the code if a proxy contract is used. This is not needed if `fileFolderAddress` is an address and the contract is not proxied.
-  -u, --url <url>          URL of the Ethereum node to get storage values if the `data` option is used. (default: "http://localhost:8545", env: NODE_URL)
-  -bn, --block <number>    Block number to get the contract storage values from. (default: "latest")
-  -h, --help               display help for command
+  -c, --contract <name>           Contract name in the local Solidity files. Not needed when using an address as the first argument as the contract name can be derived from Etherscan.
+  -cf, --contractFile <filename>  Filename the contract is located in. This can include the relative path to the desired file.
+  -d, --data                      Gets the values in the storage slots from an Ethereum node. (default: false)
+  -s, --storage <address>         The address of the contract with the storage values. This will be different from the contract with the code if a proxy contract is used. This is not needed if `fileFolderAddress` is an address and the contract is not proxied.
+  -u, --url <url>                 URL of the Ethereum node to get storage values if the `data` option is used. (default: "http://localhost:8545", env: NODE_URL)
+  -bn, --block <number>           Block number to get the contract storage values from. (default: "latest")
+  -h, --help                      display help for command
 ```
 
 ### Flatten usage

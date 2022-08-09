@@ -6,7 +6,7 @@ describe('Parser', () => {
             const files = await getSolidityFilesFromFolderOrFile(
                 './src/contracts'
             )
-            expect(files).toHaveLength(25)
+            expect(files).toHaveLength(27)
         })
 
         test('get Solidity files from folder with no sol files', async () => {

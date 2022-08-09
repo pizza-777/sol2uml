@@ -180,7 +180,11 @@ WARNING: sol2uml does not use the Solidity compiler so may differ with solc. A k
     )
     .option(
         '-c, --contract <name>',
-        'Contract name in local Solidity files. Not needed when using an address as the first argument as the contract name can be derived from Etherscan.'
+        'Contract name in the local Solidity files. Not needed when using an address as the first argument as the contract name can be derived from Etherscan.'
+    )
+    .option(
+        '-cf, --contractFile <filename>',
+        'Filename the contract is located in. This can include the relative path to the desired file.'
     )
     .option(
         '-d, --data',
@@ -217,7 +221,11 @@ WARNING: sol2uml does not use the Solidity compiler so may differ with solc. A k
             )
 
             contractName = combinedOptions.contract || contractName
-            const storages = convertClasses2Storages(contractName, umlClasses)
+            const storages = convertClasses2Storages(
+                contractName,
+                umlClasses,
+                combinedOptions.contractFile
+            )
 
             if (isAddress(fileFolderAddress)) {
                 // The first storage is the contract
@@ -236,7 +244,7 @@ WARNING: sol2uml does not use the Solidity compiler so may differ with solc. A k
                 } else {
                     if (!isAddress(fileFolderAddress)) {
                         throw Error(
-                            `Can not get storage slot values if first param is not an address and the \`address\` option is not used.`
+                            `Can not get storage slot values if first param is not an address and the \`--storage\` option is not used.`
                         )
                     }
                     storageAddress = fileFolderAddress
