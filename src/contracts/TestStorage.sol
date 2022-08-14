@@ -245,6 +245,9 @@ contract TestStorage is Parent, Parent2 {
     mapping(address => uint256) public balance;
     mapping(address => ContractLevelStruct2) public mapStruct;
     mapping(address => mapping(address => ContractLevelStruct2)) public mapOfMapStruct;
+    mapping(address => IERC20) public mapInterface;
+    IERC20[2] public interfaceFixedArray;
+    IERC20[] public interfaceDynArray;
     string public uninitialisedString;
     string public emptyString = "";
     string public name = "TestStorage contract";

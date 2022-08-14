@@ -39,6 +39,11 @@ describe('storage parser', () => {
                     },
                 ],
             }),
+            new UmlClass({
+                ...defaultClassProperties,
+                stereotype: ClassStereotype.Interface,
+                name: 'IERC20',
+            }),
         ]
         test.each`
             type         | expected
@@ -70,11 +75,12 @@ describe('storage parser', () => {
 
         // TODO implement support for sizing expressions. eg
         // ${'address[N_COINS * 2]'}      | ${128}
-        test.only.each`
+        test.each`
             type                           | expected
             ${'address[]'}                 | ${32}
             ${'address[1]'}                | ${32}
             ${'address[2]'}                | ${64}
+            ${'address[3]'}                | ${96}
             ${'address[4]'}                | ${128}
             ${'address[2][2]'}             | ${128}
             ${'address[32]'}               | ${1024}
@@ -89,6 +95,11 @@ describe('storage parser', () => {
             ${'address[][2][]'}            | ${32}
             ${'address[N_COINS]'}          | ${64}
             ${'address[N_COINS][N_COINS]'} | ${128}
+            ${'IERC20[]'}                  | ${32}
+            ${'IERC20[1]'}                 | ${32}
+            ${'IERC20[2]'}                 | ${64}
+            ${'IERC20[3]'}                 | ${96}
+            ${'IERC20[4]'}                 | ${128}
             ${'uint8[33][2][2]'}           | ${256}
             ${'bytes32[]'}                 | ${32}
             ${'bytes1[1]'}                 | ${32}
@@ -129,6 +140,10 @@ describe('storage parser', () => {
             ${'bool[][64][64]'}            | ${64 * 64 * 32}
             ${'bool[64][][64]'}            | ${64 * 32}
             ${'bool[64][64][]'}            | ${32}
+            ${'uint120[2]'}                | ${32}
+            ${'uint120[3]'}                | ${64}
+            ${'uint120[4]'}                | ${64}
+            ${'uint120[6]'}                | ${96}
             ${'TwoSlots[3][4]'}            | ${4 * 3 * 2 * 32}
             ${'TwoSlots[4][3]'}            | ${3 * 4 * 2 * 32}
             ${'TwoSlots[][3]'}             | ${3 * 32}
@@ -259,7 +274,10 @@ describe('storage parser', () => {
                 ${['address', 'bytes12', 'bytes12', 'address']}           | ${64}
                 ${['IERC20']}                                             | ${32}
                 ${['IERC20', 'IERC20', 'IERC20']}                         | ${96}
+                ${['IERC20[2]']}                                          | ${64}
                 ${['IERC20[3]']}                                          | ${96}
+                ${['IERC20[2]', 'IERC20[]']}                              | ${96}
+                ${['IERC20[2]', 'IERC20[3]']}                             | ${160}
                 ${['IERC20', 'bytes12', 'bytes12', 'IERC20']}             | ${64}
                 ${['bytes31', 'bytes2', 'bytes31']}                       | ${96}
                 ${['uint256', 'bytes32']}                                 | ${64}

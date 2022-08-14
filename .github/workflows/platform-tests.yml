@@ -25,3 +25,15 @@ jobs:
       run: sol2uml storage 0x2762e676a9f17c7de34fe4b124424837c7e18e1c -v
       env:
         NODE_URL: ${{ secrets.NODE_URL }}
+    - name: Class diagram of Replica contract used in Nomad bridge
+      run: sol2uml class 0xB92336759618F55bd0F8313bd843604592E27bd8
+      env:
+        NODE_URL: ${{ secrets.NODE_URL }}
+    - name: Storeage diagram of Replica contract used in Nomad bridge
+      run: sol2uml storage 0xB92336759618F55bd0F8313bd843604592E27bd8
+      env:
+        NODE_URL: ${{ secrets.NODE_URL }}
+    - name: Flatten Replica contract used in Nomad bridge
+      run: sol2uml flatten 0xB92336759618F55bd0F8313bd843604592E27bd8
+      env:
+        NODE_URL: ${{ secrets.NODE_URL }}

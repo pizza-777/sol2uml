@@ -265,26 +265,31 @@ export const parseReferenceStorage = (
             umlClass,
             otherClasses
         )
+        const arraySlotSize =
+            arrayItemSize > 16
+                ? 32 * Math.ceil(arrayItemSize / 32)
+                : arrayItemSize
 
-        const firstVariable: Variable = {
+        const variables: Variable[] = []
+        variables[0] = {
             id: variableId++,
             fromSlot: 0,
-            toSlot: Math.floor((arrayItemSize - 1) / 32),
+            toSlot: Math.floor((arraySlotSize - 1) / 32),
             byteSize: arrayItemSize,
             byteOffset: 0,
             type: baseType,
             dynamic,
             noValue: false,
         }
-        const variables = [firstVariable]
         if (arrayLength > 1) {
+            // For fixed length arrays. Dynamic arrays will have undefined arrayLength
             for (let i = 1; i < arrayLength; i++) {
                 variables.push({
                     id: variableId++,
-                    fromSlot: Math.floor((i * arrayItemSize) / 32),
-                    toSlot: Math.floor(((i + 1) * arrayItemSize - 1) / 32),
+                    fromSlot: Math.floor((i * arraySlotSize) / 32),
+                    toSlot: Math.floor(((i + 1) * arraySlotSize - 1) / 32),
                     byteSize: arrayItemSize,
-                    byteOffset: (i * arrayItemSize) % 32,
+                    byteOffset: (i * arraySlotSize) % 32,
                     type: baseType,
                     dynamic,
                     noValue: false,
@@ -300,7 +305,7 @@ export const parseReferenceStorage = (
                 otherClasses,
                 storages
             )
-            firstVariable.referenceStorageId = referenceStorage?.id
+            variables[0].referenceStorageId = referenceStorage?.id
         }
 
         const newStorage: Storage = {
