@@ -129,7 +129,7 @@ function addAssociationToDot(
     classOptions: ClassOptions = {}
 ): string {
     // do not include library or interface associations if hidden
-    // Or associations to Structs or Enums if they are hidden
+    // Or associations to Structs, Enums or Constants if they are hidden
     if (
         (classOptions.hideLibraries &&
             (sourceUmlClass.stereotype === ClassStereotype.Library ||
@@ -143,7 +143,9 @@ function addAssociationToDot(
         (classOptions.hideStructs &&
             targetUmlClass.stereotype === ClassStereotype.Struct) ||
         (classOptions.hideEnums &&
-            targetUmlClass.stereotype === ClassStereotype.Enum)
+            targetUmlClass.stereotype === ClassStereotype.Enum) ||
+        (classOptions.hideConstants &&
+            targetUmlClass.stereotype === ClassStereotype.Constant)
     ) {
         return ''
     }

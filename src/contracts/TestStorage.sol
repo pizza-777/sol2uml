@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.16;
 
 struct SubOneSlot {
     address account; // 20 bytes
@@ -46,6 +46,8 @@ enum Severity {
     Medium,
     High
 }
+
+uint256 constant FileConstant = 5;
 
 interface IERC20 {
     function totalSupply() external view returns (uint256);
@@ -211,6 +213,7 @@ contract TestStorage is Parent, Parent2 {
         0xEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFD
     ];
     bool public flag11 = true;
+    uint32[FileConstant] public timestamps = [1060001, 1160111, 1260223, 1360333, 1660445];
     TwoSlots[2] public twoSlots2x;
     TwoSlots[3][4] public twoSlots3x4;
     TwoSlots[4][3] public twoSlots4x3;
@@ -246,8 +249,13 @@ contract TestStorage is Parent, Parent2 {
     mapping(address => ContractLevelStruct2) public mapStruct;
     mapping(address => mapping(address => ContractLevelStruct2)) public mapOfMapStruct;
     mapping(address => IERC20) public mapInterface;
-    IERC20[2] public interfaceFixedArray;
-    IERC20[] public interfaceDynArray;
+    IERC20[2] public interfaceFixedArray = [
+        IERC20(0xe2f2a5C287993345a840Db3B0845fbC70f5935a5),
+        IERC20(0x30647a72Dc82d7Fbb1123EA74716aB8A317Eac19)];
+    IERC20[] public interfaceDynArray = [
+        IERC20(0xe2f2a5C287993345a840Db3B0845fbC70f5935a5),
+        IERC20(0x30647a72Dc82d7Fbb1123EA74716aB8A317Eac19),
+        IERC20(0x78BefCa7de27d07DC6e71da295Cc2946681A6c7B)];
     string public uninitialisedString;
     string public emptyString = "";
     string public name = "TestStorage contract";

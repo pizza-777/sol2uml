@@ -116,6 +116,7 @@ If an Ethereum address with a 0x prefix is passed, the verified source code from
         'hide private and internal attributes and operators',
         false
     )
+    .option('-hc, --hideConstants', 'hide file level constants', false)
     .option('-he, --hideEnums', 'hide enum types', false)
     .option('-hs, --hideStructs', 'hide data structures', false)
     .option('-hl, --hideLibraries', 'hide libraries', false)

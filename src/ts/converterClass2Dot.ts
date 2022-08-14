@@ -11,6 +11,7 @@ import {
 import { isAddress } from './utils/regEx'
 
 export interface ClassOptions {
+    hideConstants?: boolean
     hideVariables?: boolean
     hideFunctions?: boolean
     hideStructs?: boolean
@@ -36,7 +37,9 @@ export const convertClass2Dot = (
             umlClass.stereotype === ClassStereotype.Abstract) ||
         (options.hideStructs &&
             umlClass.stereotype === ClassStereotype.Struct) ||
-        (options.hideEnums && umlClass.stereotype === ClassStereotype.Enum)
+        (options.hideEnums && umlClass.stereotype === ClassStereotype.Enum) ||
+        (options.hideConstants &&
+            umlClass.stereotype === ClassStereotype.Constant)
     ) {
         return ''
     }
@@ -86,6 +89,9 @@ const dotClassTitle = (
         case ClassStereotype.Enum:
             stereoName = 'Enum'
             break
+        case ClassStereotype.Constant:
+            stereoName = 'Constant'
+            break
         default:
             // Contract or undefined stereotype will just return the UmlClass name
             return `${umlClass.name}${relativePath}`
@@ -101,10 +107,11 @@ const dotAttributeVisibilities = (
     if (umlClass.attributes.length === 0) return ''
 
     let dotString = '| '
-    // if a struct or enum then no visibility group
+    // if a struct, enum or constant then no visibility group
     if (
         umlClass.stereotype === ClassStereotype.Struct ||
-        umlClass.stereotype === ClassStereotype.Enum
+        umlClass.stereotype === ClassStereotype.Enum ||
+        umlClass.stereotype === ClassStereotype.Constant
     ) {
         return dotString + dotAttributes(umlClass.attributes, undefined, false)
     }

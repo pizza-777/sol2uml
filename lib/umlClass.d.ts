@@ -12,7 +12,8 @@ export declare enum ClassStereotype {
     Abstract = 3,
     Contract = 4,
     Struct = 5,
-    Enum = 6
+    Enum = 6,
+    Constant = 7
 }
 export declare enum OperatorStereotype {
     None = 0,

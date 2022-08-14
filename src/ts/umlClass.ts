@@ -14,6 +14,7 @@ export enum ClassStereotype {
     Contract,
     Struct,
     Enum,
+    Constant,
 }
 
 export enum OperatorStereotype {

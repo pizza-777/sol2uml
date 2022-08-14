@@ -161,6 +161,8 @@ enum FileLevelMemoryEnum {
     Failed
 }
 
+uint256 constant FileConstant = 5;
+
 contract Associations is ContractInterface, ContractAbstract, ContractConcrete {
 
     uint256 public someInt;
@@ -168,6 +170,7 @@ contract Associations is ContractInterface, ContractAbstract, ContractConcrete {
     Set.Data someLibrary;
     SomeStruct someStruct;
     uint256[] someIntArray;
+    address[FileConstant] constantLengthArray;
 
     FileLevelStorageEnum fileLevelEnum;
     FileLevelStruct fileLevelStruct;

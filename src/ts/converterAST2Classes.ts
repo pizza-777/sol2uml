@@ -64,7 +64,7 @@ export function convertAST2UmlClasses(
 
                 umlClasses.push(umlClass)
             } else if (childNode.type === 'StructDefinition') {
-                debug(`Adding struct ${childNode.name}`)
+                debug(`Adding file level struct ${childNode.name}`)
 
                 let umlClass = new UmlClass({
                     name: childNode.name,
@@ -81,7 +81,7 @@ export function convertAST2UmlClasses(
 
                 umlClasses.push(umlClass)
             } else if (childNode.type === 'EnumDefinition') {
-                debug(`Adding enum ${childNode.name}`)
+                debug(`Adding file level enum ${childNode.name}`)
 
                 let umlClass = new UmlClass({
                     name: childNode.name,
@@ -151,8 +151,39 @@ export function convertAST2UmlClasses(
                     )
                     imports.push(newImport)
                 }
+            } else if (childNode.type === 'FileLevelConstant') {
+                debug(`Adding file level constant ${childNode.name}`)
+
+                const [type, attributeType] = parseTypeName(childNode.typeName)
+                const umlClass = new UmlClass({
+                    name: childNode.name,
+                    stereotype: ClassStereotype.Constant,
+                    absolutePath: filesystem
+                        ? path.resolve(relativePath) // resolve the absolute path
+                        : relativePath, // from Etherscan so don't resolve
+                    relativePath,
+                    attributes: [
+                        {
+                            name: childNode.name,
+                            type,
+                            attributeType,
+                        },
+                    ],
+                })
+                if (childNode?.initialValue?.type === 'NumberLiteral') {
+                    umlClass.constants.push({
+                        name: childNode.name,
+                        value: parseInt(childNode.initialValue.number),
+                    })
+                }
+                // TODO handle expressions. eg N_COINS * 2
+
+                umlClasses.push(umlClass)
+            } else if (childNode.type !== 'PragmaDirective') {
+                debug(
+                    `node type "${childNode.type}" not parsed in ${relativePath}`
+                )
             }
-            // TODO add file level constants
         })
     } else {
         throw new Error(`AST node not of type SourceUnit`)
@@ -423,17 +454,27 @@ function addAssociations(
                         umlClass
                     )
                     // Array of user defined types
-                } else if (
-                    node.typeName.type == 'ArrayTypeName' &&
-                    node.typeName.baseTypeName.type === 'UserDefinedTypeName'
-                ) {
-                    const { umlClassName } = parseClassName(
-                        node.typeName.baseTypeName.namePath
-                    )
-                    umlClass.addAssociation({
-                        referenceType,
-                        targetUmlClassName: umlClassName,
-                    })
+                } else if (node.typeName.type == 'ArrayTypeName') {
+                    if (
+                        node.typeName.baseTypeName.type ===
+                        'UserDefinedTypeName'
+                    ) {
+                        const { umlClassName } = parseClassName(
+                            node.typeName.baseTypeName.namePath
+                        )
+                        umlClass.addAssociation({
+                            referenceType,
+                            targetUmlClassName: umlClassName,
+                        })
+                    } else if (node.typeName.length?.type === 'Identifier') {
+                        const { umlClassName } = parseClassName(
+                            node.typeName.length.name
+                        )
+                        umlClass.addAssociation({
+                            referenceType,
+                            targetUmlClassName: umlClassName,
+                        })
+                    }
                 }
                 break
             case 'UserDefinedTypeName':
