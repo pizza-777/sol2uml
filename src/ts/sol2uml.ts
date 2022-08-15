@@ -216,6 +216,13 @@ WARNING: sol2uml does not use the Solidity compiler so may differ with solc. A k
                 ...options,
             }
 
+            // If not an address and the contractName option has not been specified
+            if (!isAddress(fileFolderAddress) && !combinedOptions.contract) {
+                throw Error(
+                    `Must use the \`-c, --contract <name>\` option to specify the contract to draw the storage diagram for when sourcing from local files.\nThis option is not needed when sourcing from a blockchain explorer with a contract address.`
+                )
+            }
+
             let { umlClasses, contractName } = await parserUmlClasses(
                 fileFolderAddress,
                 combinedOptions

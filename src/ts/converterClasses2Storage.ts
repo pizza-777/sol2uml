@@ -59,8 +59,8 @@ export const addStorageValues = async (
     const slots = valueVariables.map((s) => s.fromSlot)
 
     const values = await getStorageValues(url, contractAddress, slots, blockTag)
-    valueVariables.forEach((storage, i) => {
-        storage.value = values[i]
+    valueVariables.forEach((valueVariable, i) => {
+        valueVariable.value = values[i]
     })
 }
 
@@ -86,7 +86,7 @@ export const convertClasses2Storages = (
             ? ` in filename "${contractFilename}"`
             : ''
         throw Error(
-            `Failed to find contract with name "${contractName}"${contractFilenameError}`
+            `Failed to find contract with name "${contractName}"${contractFilenameError}.\nIs the \`-c --contract <name>\` option correct?`
         )
     }
     debug(`Found contract "${contractName}" in ${umlClass.absolutePath}`)
