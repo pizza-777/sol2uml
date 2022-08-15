@@ -23,3 +23,7 @@ jobs:
       run: sol2uml storage 0x2762e676a9f17c7de34fe4b124424837c7e18e1c -v
       env:
         NODE_URL: ${{ secrets.NODE_URL }}
+    - name: KoiosECDSA flatten
+      run: sol2uml flatten 0x2762e676a9f17c7de34fe4b124424837c7e18e1c -v
+      env:
+        NODE_URL: ${{ secrets.NODE_URL }}
