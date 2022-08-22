@@ -4,7 +4,8 @@ import { Association, Import, UmlClass } from './umlClass'
 export const findAssociatedClass = (
     association: Association,
     sourceUmlClass: UmlClass,
-    umlClasses: UmlClass[]
+    umlClasses: UmlClass[],
+    searchedAbsolutePaths: string[] = []
 ): UmlClass | undefined => {
     let umlClass = umlClasses.find((targetUmlClass) => {
         // is the source class link via the association to the target class?
@@ -31,7 +32,14 @@ export const findAssociatedClass = (
     if (umlClass) return umlClass
 
     // Could not find a link so now need to recursively look at imports of imports
-    return findImplicitImport(association, sourceUmlClass, umlClasses)
+    // add to already recursively processed files to avoid getting stuck in circular imports
+    searchedAbsolutePaths.push(sourceUmlClass.absolutePath)
+    return findImplicitImport(
+        association,
+        sourceUmlClass,
+        umlClasses,
+        searchedAbsolutePaths
+    )
 }
 
 // Tests if source class can be linked to the target class via an association
@@ -74,7 +82,8 @@ const isAssociated = (
 const findImplicitImport = (
     association: Association,
     sourceUmlClass: UmlClass,
-    umlClasses: UmlClass[]
+    umlClasses: UmlClass[],
+    searchedRelativePaths: string[]
 ): UmlClass | undefined => {
     // Get all implicit imports. That is, imports that do not explicitly import contracts or interfaces.
     const implicitImports = sourceUmlClass.imports.filter(
@@ -90,11 +99,17 @@ const findImplicitImport = (
             // Could not find a class in the import file so just move onto the next loop
             continue
         }
+        // Avoid circular imports
+        if (searchedRelativePaths.includes(newSourceUmlClass.absolutePath)) {
+            // Have already recursively looked for imports of imports in this file
+            continue
+        }
         // TODO need to handle imports that use aliases as the association will not be found
         const umlClass = findAssociatedClass(
             association,
             newSourceUmlClass,
-            umlClasses
+            umlClasses,
+            searchedRelativePaths
         )
         if (umlClass) return umlClass
     }

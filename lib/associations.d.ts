@@ -1,2 +1,2 @@
 import { Association, UmlClass } from './umlClass';
-export declare const findAssociatedClass: (association: Association, sourceUmlClass: UmlClass, umlClasses: UmlClass[]) => UmlClass | undefined;
+export declare const findAssociatedClass: (association: Association, sourceUmlClass: UmlClass, umlClasses: UmlClass[], searchedAbsolutePaths?: string[]) => UmlClass | undefined;
