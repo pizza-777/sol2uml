@@ -78,7 +78,14 @@ export function getSolidityFilesFromFolderOrFile(
                     preserveSymlinks: true,
                 })
                     .on('data', (file) => {
-                        if (extname(file.path) === '.sol') files.push(file.path)
+                        if (
+                            // If file has sol extension
+                            extname(file.path) === '.sol' &&
+                            // and file and not a folder
+                            // Note Foundry's forge outputs folders with the same name as the source file
+                            file.stats.isFile()
+                        )
+                            files.push(file.path)
                     })
                     .on('end', () => {
                         debug(`Got Solidity files to be parsed: ${files}`)
