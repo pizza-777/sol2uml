@@ -97,6 +97,8 @@ Options:
   -hv, --hideVariables             hide variables from contracts, interfaces, structs and enums (default: false)
   -hf, --hideFunctions             hide functions from contracts, interfaces and libraries (default: false)
   -hp, --hidePrivates              hide private and internal attributes and operators (default: false)
+  -hm, --hideModifiers             hide modifier functions from contracts (default: false)
+  -ht, --hideEvents                hide events from contracts, interfaces and libraries (default: false)
   -hc, --hideConstants             hide file level constants (default: false)
   -he, --hideEnums                 hide enum types (default: false)
   -hs, --hideStructs               hide data structures (default: false)

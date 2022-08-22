@@ -3,6 +3,8 @@ export interface ClassOptions {
     hideConstants?: boolean;
     hideVariables?: boolean;
     hideFunctions?: boolean;
+    hideModifiers?: boolean;
+    hideEvents?: boolean;
     hideStructs?: boolean;
     hideEnums?: boolean;
     hideLibraries?: boolean;

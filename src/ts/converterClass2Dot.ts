@@ -14,6 +14,8 @@ export interface ClassOptions {
     hideConstants?: boolean
     hideVariables?: boolean
     hideFunctions?: boolean
+    hideModifiers?: boolean
+    hideEvents?: boolean
     hideStructs?: boolean
     hideEnums?: boolean
     hideLibraries?: boolean
@@ -102,7 +104,7 @@ const dotClassTitle = (
 
 const dotAttributeVisibilities = (
     umlClass: UmlClass,
-    options: { hidePrivates?: boolean } = {}
+    options: { hidePrivates?: boolean }
 ): string => {
     if (umlClass.attributes.length === 0) return ''
 
@@ -179,7 +181,11 @@ const dotAttributes = (
 
 const dotOperatorVisibilities = (
     umlClass: UmlClass,
-    options: { hidePrivates?: boolean } = {}
+    options: {
+        hidePrivates?: boolean
+        hideModifiers?: boolean
+        hideEvents?: boolean
+    }
 ): string => {
     if (umlClass.operators.length === 0) return ''
 
@@ -220,7 +226,7 @@ const dotOperatorVisibilities = (
             }
         }
 
-        dotString += dotOperators(umlClass, vizGroup, operators)
+        dotString += dotOperators(umlClass, vizGroup, operators, options)
     }
 
     return dotString
@@ -229,7 +235,11 @@ const dotOperatorVisibilities = (
 const dotOperators = (
     umlClass: UmlClass,
     vizGroup: string,
-    operators: Operator[]
+    operators: Operator[],
+    options: {
+        hideModifiers?: boolean
+        hideEvents?: boolean
+    }
 ): string => {
     // Skip if there are no operators
     if (!operators || operators.length === 0) {
@@ -242,8 +252,18 @@ const dotOperators = (
     const operatorsSortedByStereotype = operators.sort((a, b) => {
         return b.stereotype - a.stereotype
     })
+    // Filter out any modifiers or events if options are flagged to hide them
+    let operatorsFiltered = operatorsSortedByStereotype.filter(
+        (o) =>
+            !(
+                (options.hideModifiers === true &&
+                    o.stereotype === OperatorStereotype.Modifier) ||
+                (options.hideEvents === true &&
+                    o.stereotype === OperatorStereotype.Event)
+            )
+    )
 
-    for (const operator of operatorsSortedByStereotype) {
+    for (const operator of operatorsFiltered) {
         dotString += '\\ \\ \\ \\ '
 
         if (operator.stereotype > 0) {
