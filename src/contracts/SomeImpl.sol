@@ -73,6 +73,12 @@ contract SomeImpl is SomeInterface {
             _;
         }
 
+    function withModifier() someModifier(true) {
+    }
+
+    function withTwoModifiers(uint256 someInt) someModifier(true) modifierMultiParams(false, someInt) {
+    }
+
     function add(uint256 someNumber) public returns (uint256) {
         somePublicNumber = somePublicNumber + someNumber;
         return somePublicNumber;

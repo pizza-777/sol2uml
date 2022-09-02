@@ -278,6 +278,10 @@ const dotOperators = (
             dotString += ': ' + dotParameters(operator.returnParameters, true)
         }
 
+        if (options.hideModifiers === false && operator.modifiers?.length > 0) {
+            dotString += ` \\<\\<${operator.modifiers.join(', ')}\\>\\>`
+        }
+
         dotString += '\\l'
     }
 

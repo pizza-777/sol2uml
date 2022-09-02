@@ -62,6 +62,7 @@ export interface Operator extends Attribute {
     parameters?: Parameter[]
     returnParameters?: Parameter[]
     isPayable?: boolean
+    modifiers?: string[]
 }
 
 export enum ReferenceType {
