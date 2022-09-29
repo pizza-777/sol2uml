@@ -154,7 +154,7 @@ export class EtherscanParser {
         debug(`Failed to find dependencies to files: ${nonDependentFilenames}`)
 
         const solidityVersion = parseSolidityVersion(compilerVersion)
-        let solidityCode = `pragma solidity = ${solidityVersion};\n`
+        let solidityCode = `pragma solidity =${solidityVersion};\n`
 
         // output non dependent code before the dependent files just in case sol2uml missed some dependencies
         const filenames = [...nonDependentFilenames, ...dependentFilenames]
