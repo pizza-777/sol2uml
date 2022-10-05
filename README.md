@@ -6,7 +6,7 @@ A visualisation tool for [Solidity](https://solidity.readthedocs.io/) contracts 
 1. [Unified Modeling Language (UML)](https://en.wikipedia.org/wiki/Unified_Modeling_Language) [class diagram](https://en.wikipedia.org/wiki/Class_diagram) generator for Solidity contracts.
 2. Contract storage layout diagrams.
 
-UML class diagram of Open Zeppelin's ERC20 token contracts generated from [version 2.5.1](https://github.com/OpenZeppelin/openzeppelin-solidity/tree/v2.5.1/contracts/token/ERC20)
+UML class diagram of Open Zeppelin's ERC20 token contracts generated from [version 4.7.3](https://github.com/OpenZeppelin/openzeppelin-contracts/tree/v4.7.3/contracts/token/ERC20)
 ![Open Zeppelin ERC20](./examples/OpenZeppelinERC20.svg)
 
 See more contract diagrams [here](./examples/README.md).
@@ -184,10 +184,10 @@ To generate a diagram of all contracts in a single Solidity file, the output fil
 sol2uml class path/to/contracts/root/folder/solidity/file.sol -f png -o ./someFile.png
 ```
 
-To generate a diagram of all Solidity files under the `contracts` and `node_modules/openzeppelin-solidity` folders. The output will be `contracts.svg` and `contracts.png` files in the working folder.
+To generate a diagram of all Solidity files under the `contracts` and `node_modules/@openzeppelin` folders. The output will be `contracts.svg` and `contracts.png` files in the working folder.
 
 ```bash
-sol2uml class ./contracts,node_modules/openzeppelin-solidity -f all -v
+sol2uml class ./contracts,node_modules/@openzeppelin -f all -v
 ```
 
 To generate a diagram of all Solidity files under the working folder ignoring and files under the `solparse`, `@solidity-parser` and `ethlint` folders, which will be under the `node_modules` folder.

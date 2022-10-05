@@ -14,16 +14,7 @@ This uses the verified Solidity code loaded to Etherscan https://etherscan.io/ad
 ## Open Zeppelin ERC20 Tokens
 
 ![Open Zeppelin ERC20](./OpenZeppelinERC20.svg)
-Generated from version [2.3.0 contracts/token/ERC20](https://github.com/OpenZeppelin/openzeppelin-solidity/tree/v2.3.0/contracts/token/ERC20)
-
-## Open Zeppelin Base Contract
-
-![Open Zeppelin Base Contract](./OzToken.svg)
-Generated from version [2.5.1 contracts](https://github.com/OpenZeppelin/openzeppelin-solidity/tree/v2.5.1/contracts) with
-
-```
-sol2uml -b OzToken
-```
+Generated from version [4.7.3 contracts/token/ERC20](https://github.com/OpenZeppelin/openzeppelin-contracts/tree/v4.7.3/contracts/token/ERC20)
 
 ## mStable mUSD on Polygon
 
@@ -46,7 +37,7 @@ sol2uml -n bsc 0xB07c1C479b2Fdeb9f9B2d02300C13b328BF86d65
 ## Open Zeppelin All
 
 ![Open Zeppelin ERC20](./OpenZeppelinAll.svg)
-Generated from version [2.5.1 contracts](https://github.com/OpenZeppelin/openzeppelin-solidity/tree/v2.5.1/contracts)
+Generated from version [4.7.3 contracts](https://github.com/OpenZeppelin/openzeppelin-contracts/tree/v4.7.3/contracts)
 
 ## MakerDAO's SAI Token
 
