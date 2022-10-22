@@ -18,7 +18,7 @@ export const parserUmlClasses = async (
         )
 
         const etherscanApiKey =
-            options.etherscanApiKey || 'ZAD4UI2RCXCQTP38EXS3UY2MPHFU5H9KB1'
+            options.apiKey || 'ZAD4UI2RCXCQTP38EXS3UY2MPHFU5H9KB1'
         const etherscanParser = new EtherscanParser(
             etherscanApiKey,
             options.network
