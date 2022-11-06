@@ -60,7 +60,7 @@ The Solidity code can be pulled from verified source code on Blockchain explorer
     .addOption(
         new Option(
             '-k, --apiKey <key>',
-            'Blockchain explorer API key. eg Etherscan, Arbiscan, BscScan, CronoScan, FTMScan, PolygonScan or SnowTrace API key'
+            'Blockchain explorer API key. eg Etherscan, Arbiscan, Optimism, BscScan, CronoScan, FTMScan, PolygonScan or SnowTrace API key'
         ).env('SCAN_API_KEY')
     )
     .option('-v, --verbose', 'run with debugging statements', false)

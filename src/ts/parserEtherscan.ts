@@ -31,6 +31,7 @@ export const networks = <const>[
     'moonbeam',
     'optimistic',
     'kovan-optimistic',
+    'gnosisscan',
 ]
 type Network = typeof networks[number]
 
@@ -86,6 +87,9 @@ export class EtherscanParser {
         } else if (network === 'moonbeam') {
             this.url = 'https://api-moonbeam.moonscan.io/api'
             this.apikey = '5EUFXW6TDC16VERF3D9SCWRRU6AEMTBHNJ'
+        } else if (network === 'gnosisscan') {
+            this.url = 'https://api.gnosisscan.io/api'
+            this.apikey = '2RWGXIWK538EJ8XSP9DE2JUINSCG7UCSJB'
         } else {
             this.url = `https://api-${network}.etherscan.io/api`
         }
