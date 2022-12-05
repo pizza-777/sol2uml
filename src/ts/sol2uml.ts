@@ -3,7 +3,10 @@
 import { convertUmlClasses2Dot } from './converterClasses2Dot'
 import { parserUmlClasses } from './parserGeneral'
 import { EtherscanParser, networks } from './parserEtherscan'
-import { classesConnectedToBaseContracts } from './filterClasses'
+import {
+    classesConnectedToBaseContracts,
+    filterHiddenClasses,
+} from './filterClasses'
 import { Command, Option } from 'commander'
 import {
     addStorageValues,
@@ -13,6 +16,7 @@ import { convertStorages2Dot } from './converterStorage2Dot'
 import { isAddress } from './utils/regEx'
 import { writeOutputFiles, writeSolidity } from './writerFiles'
 import { basename } from 'path'
+import { squashUmlClasses } from './squashClasses'
 const program = new Command()
 
 const version =
@@ -133,6 +137,16 @@ If an Ethereum address with a 0x prefix is passed, the verified source code from
     .option('-hi, --hideInterfaces', 'hide interfaces', false)
     .option('-ha, --hideAbstracts', 'hide abstract contracts', false)
     .option('-hn, --hideFilename', 'hide relative path and file name', false)
+    .option(
+        '-s, --squash',
+        'squash inherited contracts to the base contract(s)',
+        false
+    )
+    .option(
+        '-hsc, --hideSourceContract',
+        'hide the source contract when using squash',
+        false
+    )
     .action(async (fileFolderAddress, options, command) => {
         try {
             const combinedOptions = {
@@ -145,15 +159,36 @@ If an Ethereum address with a 0x prefix is passed, the verified source code from
                 combinedOptions
             )
 
-            let filteredUmlClasses = umlClasses
-            if (options.baseContractNames) {
-                const baseContractNames = options.baseContractNames.split(',')
+            if (
+                options.squash &&
+                // Must specify base contract(s) or parse from Etherscan to get contractName
+                !(options.baseContractNames || contractName)
+            ) {
+                throw Error(
+                    'Must specify base contract(s) when using the squash option against local Solidity files.'
+                )
+            }
+
+            // Filter out any class stereotypes that are to be hidden
+            let filteredUmlClasses = filterHiddenClasses(umlClasses, options)
+
+            const baseContractNames = options.baseContractNames?.split(',')
+            if (baseContractNames) {
+                // Find all the classes connected to the base classes
                 filteredUmlClasses = classesConnectedToBaseContracts(
-                    umlClasses,
+                    filteredUmlClasses,
                     baseContractNames,
                     options.depth
                 )
                 contractName = baseContractNames[0]
+            }
+
+            // squash contracts
+            if (options.squash) {
+                filteredUmlClasses = squashUmlClasses(
+                    filteredUmlClasses,
+                    baseContractNames || [contractName]
+                )
             }
 
             const dotString = convertUmlClasses2Dot(
