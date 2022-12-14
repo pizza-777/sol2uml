@@ -392,7 +392,7 @@ program
     .usage(
         `[options] <addressA> <addressB>
 
-The results show the comparision of contract A to B.
+The results show the comparison of contracts A to B.
 The ${clc.green(
             'green'
         )} sections are additions to contract B that are not in contract A.
@@ -412,7 +412,7 @@ The line numbers are from contract B. There are no line numbers for the red sect
     .addOption(
         new Option(
             '-l, --lineBuffer <value>',
-            'Minimum number a lines before and after changes'
+            'Minimum number of lines before and after changes'
         ).default('4')
     )
     .option(

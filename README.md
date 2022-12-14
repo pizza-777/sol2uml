@@ -160,7 +160,7 @@ Options:
 ```
 Usage: sol2uml diff [options] <addressA> <addressB>
 
-The results show the comparision of contract A to B.
+The results show the comparison of contracts A to B.
 The green sections are additions to contract B that are not in contract A.
 The red sections are removals from contract A that are not in contract B.
 The line numbers are from contract B. There are no line numbers for the red sections as they are not in contract B.
@@ -172,7 +172,7 @@ Arguments:
   addressB                  Contract address in hexadecimal format with a 0x prefix.
 
 Options:
-  -l, --lineBuffer <value>  Minimum number a lines before and after changes (default: "4")
+  -l, --lineBuffer <value>  Minimum number of lines before and after changes (default: "4")
   -s, --saveFiles           Save the flattened contract code to the filesystem. The file names will be the contract address with a .sol extension. (default: false)
   -h, --help                display help for command
 ```
