@@ -27,3 +27,7 @@ jobs:
       run: sol2uml flatten 0x2762e676a9f17c7de34fe4b124424837c7e18e1c -v
       env:
         NODE_URL: ${{ secrets.NODE_URL }}
+    - name: Resonate Fantom flatten
+      run: sol2uml flatten --network fantom 0x1a5c2ee3fb7fe4a2c2e42474a3657c71f6c775cf -v
+      env:
+        NODE_URL: ${{ secrets.NODE_URL }}
