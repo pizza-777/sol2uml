@@ -4,6 +4,7 @@ import { getStorageValues } from './slotValues'
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils'
 import { BigNumber } from 'ethers'
 import path from 'path'
+import { BigNumberish } from '@ethersproject/bignumber'
 
 const debug = require('debug')('sol2uml')
 
@@ -45,15 +46,17 @@ let variableId = 1
 
 /**
  *
- * @param url
- * @param contractAddress Contract address to get the storage slot values from
+ * @param url of Ethereum JSON-RPC API provider. eg Infura or Alchemy
+ * @param contractAddress Contract address to get the storage slot values from.
+ * If proxied, use proxy and not the implementation contract.
  * @param storage is mutated with the storage values
+ * @param blockTag block number or `latest`
  */
 export const addStorageValues = async (
     url: string,
     contractAddress: string,
     storage: Storage,
-    blockTag: string
+    blockTag?: BigNumberish | 'latest'
 ) => {
     const valueVariables = storage.variables.filter((s) => !s.noValue)
     const slots = valueVariables.map((s) => s.fromSlot)
@@ -64,6 +67,13 @@ export const addStorageValues = async (
     })
 }
 
+/**
+ *
+ * @param contractName name of the contract to get storage layout.
+ * @param umlClasses array of UML classes of type `UMLClass`
+ * @param contractFilename relative path of the contract in the file system
+ * @return array of storage objects with consecutive slots
+ */
 export const convertClasses2Storages = (
     contractName: string,
     umlClasses: UmlClass[],

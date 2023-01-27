@@ -206,7 +206,6 @@ If an Ethereum address with a 0x prefix is passed, the verified source code from
             // Convert Graphviz dot format to file formats. eg svg or png
             await writeOutputFiles(
                 dotString,
-                fileFolderAddress,
                 contractName || 'classDiagram',
                 combinedOptions.outputFormat,
                 combinedOptions.outputFileName
@@ -319,7 +318,7 @@ WARNING: sol2uml does not use the Solidity compiler so may differ with solc. A k
                     combinedOptions.url,
                     storageAddress,
                     storage,
-                    combinedOptions.blockNumber
+                    combinedOptions.block
                 )
             }
 
@@ -327,7 +326,6 @@ WARNING: sol2uml does not use the Solidity compiler so may differ with solc. A k
 
             await writeOutputFiles(
                 dotString,
-                fileFolderAddress,
                 contractName || 'storageDiagram',
                 combinedOptions.outputFormat,
                 combinedOptions.outputFileName

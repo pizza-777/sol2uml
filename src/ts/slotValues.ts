@@ -9,26 +9,15 @@ interface StorageAtResponse {
     result: string
 }
 
-export const getStorageValue = async (
-    url: string,
-    contractAddress: string,
-    slot: BigNumberish,
-    blockTag: BigNumberish | 'latest' = 'latest'
-) => {
-    debug(`About to get storage slot ${slot} value for ${contractAddress}`)
-
-    const values = await getStorageValues(
-        url,
-        contractAddress,
-        [slot],
-        blockTag
-    )
-
-    debug(`Got slot ${slot} value: ${values[0]}`)
-    return values[0]
-}
-
 let jsonRpcId = 0
+/**
+ * Get storage slot values from JSON-RPC API provider.
+ * @param url of Ethereum JSON-RPC API provider. eg Infura or Alchemy
+ * @param contractAddress Contract address to get the storage slot values from.
+ * If proxied, use proxy and not the implementation contract.
+ * @param slots array of slot numbers to retrieve values for.
+ * @param blockTag block number or `latest`
+ */
 export const getStorageValues = async (
     url: string,
     contractAddress: string,
@@ -76,4 +65,31 @@ export const getStorageValues = async (
             { cause: err }
         )
     }
+}
+
+/**
+ * Get storage slot values from JSON-RPC API provider.
+ * @param url of Ethereum JSON-RPC API provider. eg Infura or Alchemy
+ * @param contractAddress Contract address to get the storage slot values from.
+ * If proxied, use proxy and not the implementation contract.
+ * @param slot slot number to retrieve the value for.
+ * @param blockTag block number or `latest`
+ */
+export const getStorageValue = async (
+    url: string,
+    contractAddress: string,
+    slot: BigNumberish,
+    blockTag: BigNumberish | 'latest' = 'latest'
+) => {
+    debug(`About to get storage slot ${slot} value for ${contractAddress}`)
+
+    const values = await getStorageValues(
+        url,
+        contractAddress,
+        [slot],
+        blockTag
+    )
+
+    debug(`Got slot ${slot} value: ${values[0]}`)
+    return values[0]
 }
