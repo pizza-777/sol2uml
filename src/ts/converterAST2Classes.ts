@@ -11,7 +11,7 @@ import {
     UserDefinedTypeName,
     UsingForDeclaration,
     VariableDeclaration,
-} from '@solidity-parser/parser/dist/src/ast-types'
+} from 'tvm-solidity-parser/dist/src/ast-types'
 import * as path from 'path'
 import { posix } from 'path'
 

@@ -7,7 +7,7 @@ import {
     StateVariableDeclaration,
     StructDefinition,
     UsingForDeclaration,
-} from '@solidity-parser/parser/dist/src/ast-types'
+} from 'tvm-solidity-parser/dist/src/ast-types'
 
 export const isStateVariableDeclaration = (
     node: BaseASTNode
