@@ -79,8 +79,8 @@ export function getSolidityFilesFromFolderOrFile(
                 })
                     .on('data', (file) => {
                         if (
-                            // If file has sol extension
-                            extname(file.path) === '.sol' &&
+                            // If file has sol or tsol extension
+                            (extname(file.path) === '.sol' || extname(file.path) === '.tsol') &&
                             // and file and not a folder
                             // Note Foundry's forge outputs folders with the same name as the source file
                             file.stats.isFile()
