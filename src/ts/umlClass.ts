@@ -70,6 +70,7 @@ export interface Operator extends Attribute {
     returnParameters?: Parameter[]
     stateMutability?: string
     modifiers?: string[]
+    isResponsible?: boolean
     // Used by squashed classes
     hash?: string
     inheritancePosition?: number

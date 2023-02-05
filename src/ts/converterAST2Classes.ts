@@ -343,6 +343,7 @@ function parseContractDefinition(node: ContractDefinition, umlClass: UmlClass) {
                     parameters: parseParameters(subNode.parameters),
                     returnParameters: parseParameters(subNode.returnParameters),
                     modifiers: subNode.modifiers.map((m) => m.name),
+                    isResponsible: subNode.isResponsible,
                 })
             }
 

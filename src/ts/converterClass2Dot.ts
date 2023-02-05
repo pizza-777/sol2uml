@@ -293,6 +293,10 @@ const dotOperators = (
             dotString += ` \\<\\<${operator.modifiers.join(', ')}\\>\\>`
         }
 
+        if(operator.isResponsible) {
+            dotString += ` \\<\\<responsible\\>\\>`
+        }
+
         if (operator.sourceContract && !options.hideSourceContract)
             dotString += ` \\<\\<${operator.sourceContract}\\>\\>`
 
