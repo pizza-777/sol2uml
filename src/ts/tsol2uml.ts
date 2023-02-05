@@ -29,13 +29,13 @@ const version =
 program.version(version)
 
 const debugControl = require('debug')
-const debug = require('debug')('sol2uml')
+const debug = require('debug')('tsol2uml')
 
 program
     .usage(
         `[subcommand] <options>
 
-sol2uml comes with three subcommands:
+tsol2uml comes with three subcommands:
 * class:    Generates a UML class diagram from Solidity source code. (default)
 * storage:  Generates a diagram of a contract's storage slots.
 * flatten:  Merges verified Solidity files from a Blockchain explorer into one local file.
@@ -77,17 +77,17 @@ program
     .command('class', { isDefault: true })
     .description('Generates a UML class diagram from Solidity source code.')
     .usage(
-        `sol2uml [options] <fileFolderAddress>
+        `tsol2uml [options] <fileFolderAddress>
 
 Generates UML diagrams from Solidity source code.
 
 If no file, folder or address is passed as the first argument, the working folder is used.
 When a folder is used, all *.sol files are found in that folder and all sub folders.
 A comma separated list of files and folders can also be used. For example
-    sol2uml contracts,node_modules/openzeppelin-solidity
+    tsol2uml contracts,node_modules/openzeppelin-solidity
 
 If an Ethereum address with a 0x prefix is passed, the verified source code from Etherscan will be used. For example
-    sol2uml 0x79fEbF6B9F76853EDBcBc913e6aAE8232cFB9De9`
+    tsol2uml 0x79fEbF6B9F76853EDBcBc913e6aAE8232cFB9De9`
     )
     .argument(
         '[fileFolderAddress]',
@@ -224,7 +224,7 @@ program
     .usage(
         `[options] <fileFolderAddress>
 
-WARNING: sol2uml does not use the Solidity compiler so may differ with solc. A known example is fixed-sized arrays declared with an expression will fail to be sized.`
+WARNING: tsol2uml does not use the Solidity compiler so may differ with solc. A known example is fixed-sized arrays declared with an expression will fail to be sized.`
     )
     .argument(
         '<fileFolderAddress>',
@@ -466,7 +466,7 @@ The line numbers are from contract B. There are no line numbers for the red sect
     })
 
 program.on('option:verbose', () => {
-    debugControl.enable('sol2uml,axios')
+    debugControl.enable('tsol2uml,axios')
     debug('verbose on')
 })
 

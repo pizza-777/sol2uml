@@ -1,7 +1,7 @@
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
 import axios from 'axios'
 
-const debug = require('debug')('sol2uml')
+const debug = require('debug')('tsol2uml')
 
 interface StorageAtResponse {
     jsonrpc: '2.0'

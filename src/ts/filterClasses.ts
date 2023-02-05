@@ -12,7 +12,7 @@ import { ClassOptions } from './converterClass2Dot'
 /**
  * Filter out any UML Class types that are to be hidden.
  * @param umlClasses array of UML classes of type `UMLClass`
- * @param options sol2uml class options
+ * @param options tsol2uml class options
  * @return umlClasses filtered list of UML classes of type `UMLClass`
  */
 export const filterHiddenClasses = (

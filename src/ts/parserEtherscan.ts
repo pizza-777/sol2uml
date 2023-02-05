@@ -8,7 +8,7 @@ import { topologicalSortClasses } from './filterClasses'
 import { parseSolidityVersion } from './utils/regEx'
 
 require('axios-debug-log')
-const debug = require('debug')('sol2uml')
+const debug = require('debug')('tsol2uml')
 
 export const networks = <const>[
     'mainnet',
@@ -165,7 +165,7 @@ export class EtherscanParser {
         const solidityVersion = parseSolidityVersion(compilerVersion)
         let solidityCode = `pragma solidity =${solidityVersion};\n`
 
-        // output non dependent code before the dependent files just in case sol2uml missed some dependencies
+        // output non dependent code before the dependent files just in case tsol2uml missed some dependencies
         const filenames = [...nonDependentFilenames, ...dependentFilenames]
 
         // For each filename

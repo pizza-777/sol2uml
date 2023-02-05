@@ -8,7 +8,7 @@ import {
 } from './umlClass'
 import { findAssociatedClass } from './associations'
 
-const debug = require('debug')('sol2uml')
+const debug = require('debug')('tsol2uml')
 
 /**
  * Converts UML classes to Graphviz's DOT format.

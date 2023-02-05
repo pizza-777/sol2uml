@@ -3,7 +3,7 @@ import path from 'path'
 import vizRenderStringSync from '@aduh95/viz.js/sync'
 const { convert } = require('convert-svg-to-png')
 
-const debug = require('debug')('sol2uml')
+const debug = require('debug')('tsol2uml')
 
 export type OutputFormats = 'svg' | 'png' | 'dot' | 'all'
 

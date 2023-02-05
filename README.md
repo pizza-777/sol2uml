@@ -1,4 +1,9 @@
 # Solidity 2 UML
+This is the fork of [sol2uml](sol2uml) made for Everscale Solidity projects.
+It works with `.sol` and `.tsol` files.
+Instead of `sol2uml`, use `tsol2uml` in the command line.
+
+Original README:
 
 [![npm version](https://badge.fury.io/js/sol2uml.svg)](https://badge.fury.io/js/sol2uml)
 

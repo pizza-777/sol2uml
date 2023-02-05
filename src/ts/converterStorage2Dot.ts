@@ -1,6 +1,6 @@
 import { Storage, StorageType, Variable } from './converterClasses2Storage'
 
-const debug = require('debug')('sol2uml')
+const debug = require('debug')('tsol2uml')
 
 export const convertStorages2Dot = (
     storages: Storage[],

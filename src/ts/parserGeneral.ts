@@ -3,7 +3,7 @@ import { parseUmlClassesFromFiles } from './parserFiles'
 import { UmlClass } from './umlClass'
 import { isAddress } from './utils/regEx'
 
-const debug = require('debug')('sol2uml')
+const debug = require('debug')('tsol2uml')
 
 export interface ParserOptions {
     apiKey?: string

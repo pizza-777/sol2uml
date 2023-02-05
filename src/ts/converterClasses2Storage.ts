@@ -6,7 +6,7 @@ import { BigNumber } from 'ethers'
 import path from 'path'
 import { BigNumberish } from '@ethersproject/bignumber'
 
-const debug = require('debug')('sol2uml')
+const debug = require('debug')('tsol2uml')
 
 export enum StorageType {
     Contract = 'Contract',

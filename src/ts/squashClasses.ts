@@ -1,7 +1,7 @@
 import { ClassStereotype, Operator, UmlClass } from './umlClass'
 import * as crypto from 'crypto'
 
-const debug = require('debug')('sol2uml')
+const debug = require('debug')('tsol2uml')
 
 /**
  * Flattens the inheritance hierarchy for each base contract.

@@ -7,7 +7,7 @@ import { parse } from 'tvm-solidity-parser'
 import { convertAST2UmlClasses } from './converterAST2Classes'
 import { UmlClass } from './umlClass'
 
-const debug = require('debug')('sol2uml')
+const debug = require('debug')('tsol2uml')
 
 export const parseUmlClassesFromFiles = async (
     filesOrFolders: string[],

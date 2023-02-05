@@ -1,7 +1,7 @@
 {
-  "name": "sol2uml",
+  "name": "tsol2uml",
   "version": "2.4.3",
-  "description": "Solidity contract visualisation tool.",
+  "description": "Everscale solidity contracts visualisation tool.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "scripts": {
@@ -14,9 +14,10 @@
   },
   "preferGlobal": true,
   "contributors": [
-    "Nick Addison"
+    "Nick Addison",
+    "pizza-777"
   ],
-  "repository": "github:naddison36/sol2uml",
+  "repository": "github:pizza-777/sol2uml#tvm",
   "license": "MIT",
   "dependencies": {
     "@aduh95/viz.js": "^3.7.0",
@@ -34,6 +35,7 @@
   },
   "devDependencies": {
     "@openzeppelin/contracts": "4.8.0",
+    "@solidity-parser/parser": "^0.15.0",
     "@types/diff-match-patch": "^1.0.32",
     "@types/jest": "^29.4.0",
     "@types/klaw": "^3.0.3",
@@ -48,10 +50,10 @@
     "lib/*.d.ts",
     "lib/utils/*.js",
     "lib/utils/*.d.ts",
-    "sol2uml"
+    "tsol2uml"
   ],
   "bin": {
-    "sol2uml": "lib/sol2uml.js"
+    "tsol2uml": "lib/tsol2uml.js"
   },
   "keywords": [
     "Unified Modeling Language",

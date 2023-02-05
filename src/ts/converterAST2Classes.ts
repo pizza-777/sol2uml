@@ -35,7 +35,7 @@ import {
     isUsingForDeclaration,
 } from './typeGuards'
 
-const debug = require('debug')('sol2uml')
+const debug = require('debug')('tsol2uml')
 
 let umlClasses: UmlClass[]
 
@@ -107,7 +107,7 @@ export function convertAST2UmlClasses(
             } else if (childNode.type === 'ImportDirective') {
                 const codeFolder = path.dirname(relativePath)
                 if (filesystem) {
-                    // resolve the imported file from the folder sol2uml was run against
+                    // resolve the imported file from the folder tsol2uml was run against
                     try {
                         const importPath = require.resolve(childNode.path, {
                             paths: [codeFolder],
