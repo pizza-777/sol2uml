@@ -678,6 +678,8 @@ function parseTypeName(typeName: TypeName): [string, AttributeType] {
             return [typeName.name, AttributeType.Elementary]
         case 'UserDefinedTypeName':
             return [typeName.namePath, AttributeType.UserDefined]
+        case 'OptionalTypeName':            
+            return ['optional(' + typeName.arguments.map(arg => parseTypeName(arg)[0]).toString() + ')', AttributeType.Optional]                   
         case 'FunctionTypeName':
             // TODO add params and return type
             return [typeName.type + '\\(\\)', AttributeType.Function]
@@ -703,7 +705,7 @@ function parseTypeName(typeName: TypeName): [string, AttributeType] {
                 AttributeType.Mapping,
             ]
         default:
-            throw Error(`Invalid typeName ${typeName}`)
+            throw Error(`Invalid typeName ${JSON.stringify(typeName, null, 4)}`)
     }
 }
 

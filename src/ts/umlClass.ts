@@ -27,12 +27,14 @@ export enum OperatorStereotype {
     Abstract,
 }
 
+
 export enum AttributeType {
     Elementary,
     UserDefined,
     Function,
     Array,
     Mapping,
+    Optional
 }
 
 export interface Import {
