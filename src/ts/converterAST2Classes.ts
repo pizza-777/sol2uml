@@ -338,12 +338,13 @@ function parseContractDefinition(node: ContractDefinition, umlClass: UmlClass) {
 
                 umlClass.operators.push({
                     visibility: parseVisibility(subNode.visibility),
-                    name: subNode.name,
+                    name: subNode.name ?? (subNode.isOnBounce ? 'onBounce' : (subNode.isFallback ? 'fallback' : '')),
                     stereotype,
                     parameters: parseParameters(subNode.parameters),
                     returnParameters: parseParameters(subNode.returnParameters),
                     modifiers: subNode.modifiers.map((m) => m.name),
                     isResponsible: subNode.isResponsible,
+                    isOnBounce: subNode.isOnBounce,
                 })
             }
 

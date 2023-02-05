@@ -71,6 +71,7 @@ export interface Operator extends Attribute {
     stateMutability?: string
     modifiers?: string[]
     isResponsible?: boolean
+    isOnBounce?: boolean
     // Used by squashed classes
     hash?: string
     inheritancePosition?: number
