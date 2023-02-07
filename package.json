@@ -1,6 +1,6 @@
 {
   "name": "tsol2uml",
-  "version": "2.4.3",
+  "version": "2.4.31",
   "description": "Everscale solidity contracts visualisation tool.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",

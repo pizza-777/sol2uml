@@ -92,13 +92,13 @@ export function getSolidityFilesFromFolderOrFile(
                         resolve(files)
                     })
             } else if (folderOrFile.isFile()) {
-                if (extname(folderOrFilePath) === '.sol') {
+                if (extname(folderOrFilePath) === '.sol' || extname(folderOrFilePath) === '.tsol') {
                     debug(`Got Solidity file to be parsed: ${folderOrFilePath}`)
                     resolve([folderOrFilePath])
                 } else {
                     reject(
                         Error(
-                            `File ${folderOrFilePath} does not have a .sol extension.`
+                            `File ${folderOrFilePath} does not have a .sol or .tsol extension.`
                         )
                     )
                 }
